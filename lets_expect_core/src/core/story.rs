@@ -6,8 +6,8 @@ use syn::{parse::{Parse, ParseStream}, Stmt, Result, Ident};
 use super::{story_expect_to::StoryExpectTo, create_test::create_test};
 
 pub enum StoryElement {
-    Statement(Stmt),
-    Expect(StoryExpectTo)
+    Statement(Box<Stmt>),
+    Expect(Box<StoryExpectTo>)
 }
 
 pub struct Story {
