@@ -1,20 +1,24 @@
 use proc_macro2::TokenStream;
 use quote::quote_spanned;
-use syn::{Expr, parse::Parse, Ident};
+use syn::{parse::Parse, Expr, Ident};
 
 use crate::core::to::To;
 
-use super::{to_block::ToBlock, runtime::Runtime};
+use super::{runtime::Runtime, to_block::ToBlock};
 
 pub struct StoryExpectTo {
     keyword: Ident,
     subject: Expr,
-    to: ToBlock
+    to: ToBlock,
 }
 
 impl StoryExpectTo {
     pub fn new(keyword: Ident, subject: Expr, to: ToBlock) -> Self {
-        StoryExpectTo { keyword, subject, to }
+        StoryExpectTo {
+            keyword,
+            subject,
+            to,
+        }
     }
 }
 
@@ -46,7 +50,7 @@ impl Parse for StoryExpectTo {
 
 impl StoryExpectTo {
     pub fn to_tokens(&self, runtime: &Runtime) -> TokenStream {
-        let runtime = runtime.extend(Some(self.subject.clone()), &[]);
+        let runtime = runtime.extend(Some(self.subject.clone()), &[], &Vec::new(), &Vec::new());
         let to_tokens = self.to.to_tokens(&runtime);
 
         quote_spanned! { self.keyword.span() =>

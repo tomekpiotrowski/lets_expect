@@ -1,23 +1,30 @@
 use proc_macro2::TokenStream;
-use quote::quote_spanned;
 use quote::quote;
-use syn::{parse::{Parse, ParseStream}, Stmt, Result, Ident};
+use quote::quote_spanned;
+use syn::{
+    parse::{Parse, ParseStream},
+    Ident, Result, Stmt,
+};
 
-use super::{story_expect_to::StoryExpectTo, create_test::create_test};
+use super::runtime::Runtime;
+use super::{create_test::create_test, story_expect_to::StoryExpectTo};
 
 pub enum StoryElement {
     Statement(Box<Stmt>),
-    Expect(Box<StoryExpectTo>)
+    Expect(Box<StoryExpectTo>),
 }
 
 pub struct Story {
     pub identifier: Ident,
-    elements: Vec<StoryElement>
+    elements: Vec<StoryElement>,
 }
 
 impl Story {
     pub fn new(identifier: Ident, elements: Vec<StoryElement>) -> Self {
-        Story { identifier, elements }
+        Story {
+            identifier,
+            elements,
+        }
     }
 }
 
@@ -38,24 +45,32 @@ impl Parse for Story {
             }
         }
 
-
         Ok(Story::new(identifier, elements))
     }
 }
 
 impl Story {
-    pub fn to_tokens(&self, runtime: &super::runtime::Runtime) -> TokenStream {
-        let elements: Vec<TokenStream> = self.elements.iter().map(|element| {
-            match element {
+    pub fn to_tokens(&self, runtime: &Runtime) -> TokenStream {
+        let befores = &runtime.befores;
+        let afters = &runtime.afters;
+
+        let elements: Vec<TokenStream> = self
+            .elements
+            .iter()
+            .map(|element| match element {
                 StoryElement::Statement(statement) => quote! { #statement },
-                StoryElement::Expect(expect) => expect.to_tokens(runtime)
-            }
-        }).collect();
+                StoryElement::Expect(expect) => expect.to_tokens(runtime),
+            })
+            .collect();
 
         let content = quote_spanned! { self.identifier.span() =>
             let mut test_cases = Vec::new();
 
+            #(#befores)*
+
             #(#elements)*
+
+            #(#afters)*
 
             test_cases
         };
