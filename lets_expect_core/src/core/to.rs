@@ -1,18 +1,21 @@
 use proc_macro2::TokenStream;
-use syn::punctuated::Punctuated;
-use syn::token::{Comma, Brace};
-use syn::{Ident, braced};
 use syn::parse::{Parse, ParseStream};
+use syn::punctuated::Punctuated;
+use syn::token::{Brace, Comma};
+use syn::{braced, Ident};
 
-use super::runtime::Runtime;
 use super::expectation::Expectation;
+use super::runtime::Runtime;
 use quote::{quote_spanned, ToTokens};
 
 const TEST_NAME_PREFIX: &str = "to_";
 
 pub enum To {
     Single(Box<Expectation>),
-    Multi { identifier: Ident, expectations: Vec<Expectation> },
+    Multi {
+        identifier: Ident,
+        expectations: Vec<Expectation>,
+    },
 }
 
 impl Parse for To {
@@ -22,8 +25,12 @@ impl Parse for To {
             let content;
             braced!(content in input);
 
-            let expectations: Punctuated<Expectation, Comma> = Punctuated::parse_separated_nonempty(&content)?;
-            Ok(To::Multi { identifier: ident, expectations: expectations.into_iter().collect() })
+            let expectations: Punctuated<Expectation, Comma> =
+                Punctuated::parse_separated_nonempty(&content)?;
+            Ok(To::Multi {
+                identifier: ident,
+                expectations: expectations.into_iter().collect(),
+            })
         } else if input.peek(Ident) {
             let expectation = input.parse::<Expectation>()?;
 
@@ -34,13 +41,24 @@ impl Parse for To {
     }
 }
 
-type ExpectationTokens = (Expectation, TokenStream, TokenStream, Vec<(String, TokenStream)>);
+type ExpectationTokens = (
+    Expectation,
+    TokenStream,
+    TokenStream,
+    Vec<(String, TokenStream)>,
+);
 
 impl To {
     pub fn identifier(&self) -> Ident {
         match self {
-            To::Single(expectation) => Ident::new(format!("{}{}", TEST_NAME_PREFIX, &expectation.identifier()).as_str(), expectation.span()),
-            To::Multi { identifier, .. } => Ident::new(format!("{}{}", TEST_NAME_PREFIX, identifier).as_str(), identifier.span()),
+            To::Single(expectation) => Ident::new(
+                format!("{}{}", TEST_NAME_PREFIX, &expectation.identifier()).as_str(),
+                expectation.span(),
+            ),
+            To::Multi { identifier, .. } => Ident::new(
+                format!("{}{}", TEST_NAME_PREFIX, identifier).as_str(),
+                identifier.span(),
+            ),
         }
     }
 
@@ -55,17 +73,36 @@ impl To {
         let identifier = self.identifier();
         let subject = runtime.subject.as_ref().expect("No subject set");
 
-        let expectations: Vec<ExpectationTokens> = self.expectations().iter().enumerate().map(|(usize, expectation)| {
-            let prefix = format!("expectation_{}", usize);
-            (expectation.clone(), expectation.before_subject_tokens(&prefix), expectation.after_subject_tokens(&prefix), expectation.assertion_tokens(&prefix))
-        }).collect();
+        let expectations: Vec<ExpectationTokens> = self
+            .expectations()
+            .iter()
+            .enumerate()
+            .map(|(usize, expectation)| {
+                let prefix = format!("expectation_{}", usize);
+                (
+                    expectation.clone(),
+                    expectation.before_subject_tokens(&prefix),
+                    expectation.after_subject_tokens(&prefix),
+                    expectation.assertion_tokens(&prefix),
+                )
+            })
+            .collect();
 
-        let before_subject = expectations.iter().map(|(_, before_subject, _, _)| before_subject).collect::<Vec<_>>();
-        let after_subject = expectations.iter().map(|(_, _, after_subject, _)| after_subject).collect::<Vec<_>>();
+        let before_subject = expectations
+            .iter()
+            .map(|(_, before_subject, _, _)| before_subject)
+            .collect::<Vec<_>>();
+        let after_subject = expectations
+            .iter()
+            .map(|(_, _, after_subject, _)| after_subject)
+            .collect::<Vec<_>>();
 
         let subject_label = subject.to_token_stream().to_string();
 
-        let subject_may_panic = self.expectations().iter().any(Expectation::subject_may_panic);
+        let subject_may_panic = self
+            .expectations()
+            .iter()
+            .any(Expectation::subject_may_panic);
 
         let subject_result = if subject_may_panic {
             quote_spanned! { identifier.span() =>
@@ -73,7 +110,6 @@ impl To {
                     #subject
                 });
             }
-
         } else {
             quote_spanned! { identifier.span() =>
                 let subject_result = { #subject };
