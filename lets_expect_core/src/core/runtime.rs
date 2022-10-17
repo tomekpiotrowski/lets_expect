@@ -3,7 +3,7 @@ use syn::{Expr, Local};
 #[derive(Debug, Default)]
 pub struct Runtime {
     pub subject: Option<Expr>,
-    pub lets: Vec<Local>
+    pub lets: Vec<Local>,
 }
 
 impl Runtime {
@@ -20,6 +20,9 @@ impl Runtime {
             new_lets
         };
 
-        Runtime { subject: new_subject, lets: new_lets }
+        Runtime {
+            subject: new_subject,
+            lets: new_lets,
+        }
     }
 }

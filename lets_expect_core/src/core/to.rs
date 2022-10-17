@@ -11,7 +11,7 @@ use quote::{quote_spanned, ToTokens};
 const TEST_NAME_PREFIX: &str = "to_";
 
 pub enum To {
-    Single(Expectation),
+    Single(Box<Expectation>),
     Multi { identifier: Ident, expectations: Vec<Expectation> },
 }
 
@@ -27,7 +27,7 @@ impl Parse for To {
         } else if input.peek(Ident) {
             let expectation = input.parse::<Expectation>()?;
 
-            Ok(To::Single(expectation))
+            Ok(To::Single(Box::new(expectation)))
         } else {
             Err(input.error("expected identifier or expression"))
         }
@@ -46,7 +46,7 @@ impl To {
 
     fn expectations(&self) -> Vec<Expectation> {
         match self {
-            To::Single(expectation) => vec![(*expectation).clone()],
+            To::Single(expectation) => vec![(**expectation).clone()],
             To::Multi { expectations, .. } => expectations.clone(),
         }
     }

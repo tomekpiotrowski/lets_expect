@@ -1,8 +1,14 @@
-use proc_macro2::{TokenStream, Span};
-use syn::{Ident, parse::{Parse, ParseStream, ParseBuffer}, Expr, spanned::Spanned, Error, token::{Comma, Brace}, punctuated::Punctuated};
-use quote::{quote_spanned, ToTokens};
 use super::to_ident::{expr_to_ident, path_to_ident};
+use proc_macro2::{Span, TokenStream};
+use quote::{quote_spanned, ToTokens};
 use syn::braced;
+use syn::{
+    parse::{Parse, ParseBuffer, ParseStream},
+    punctuated::Punctuated,
+    spanned::Spanned,
+    token::{Brace, Comma},
+    Error, Expr, Ident,
+};
 
 #[derive(Clone)]
 pub enum Expectation {
@@ -10,6 +16,7 @@ pub enum Expectation {
     Have(Expr, Vec<Expr>),
     Make(Expr, Vec<Expr>),
     Change(Expr, Vec<Expr>),
+    NotChange(Expr),
 }
 
 impl Expectation {
@@ -19,6 +26,7 @@ impl Expectation {
             Expectation::Have(_, _) => false,
             Expectation::Make(_, _) => false,
             Expectation::Change(_, _) => false,
+            Expectation::NotChange(_) => false,
         }
     }
 
@@ -28,6 +36,7 @@ impl Expectation {
             Expectation::Have(expr, _) => expr.span(),
             Expectation::Make(expr, _) => expr.span(),
             Expectation::Change(expr, _) => expr.span(),
+            Expectation::NotChange(expr) => expr.span(),
         }
     }
 
@@ -37,18 +46,35 @@ impl Expectation {
             Expectation::Have(call, assertions) => {
                 let call_ident = expr_to_ident(call);
 
-                format!("have_{}_{}", call_ident, expr_to_ident(assertions.first().expect("Expected at least one assertion")))
-            },
+                format!(
+                    "have_{}_{}",
+                    call_ident,
+                    expr_to_ident(assertions.first().expect("Expected at least one assertion"))
+                )
+            }
             Expectation::Make(call, assertions) => {
                 let call_ident = expr_to_ident(call);
 
-                format!("make_{}_{}", call_ident, expr_to_ident(assertions.first().expect("Expected at least one assertion")))
-            },
+                format!(
+                    "make_{}_{}",
+                    call_ident,
+                    expr_to_ident(assertions.first().expect("Expected at least one assertion"))
+                )
+            }
             Expectation::Change(call, assertions) => {
                 let call_ident = expr_to_ident(call);
 
-                format!("change_{}_{}", call_ident, expr_to_ident(assertions.first().expect("Expected at least one assertion")))
-            },
+                format!(
+                    "change_{}_{}",
+                    call_ident,
+                    expr_to_ident(assertions.first().expect("Expected at least one assertion"))
+                )
+            }
+            Expectation::NotChange(call) => {
+                let call_ident = expr_to_ident(call);
+
+                format!("not_change_{}", call_ident)
+            }
         }
     }
 
@@ -59,7 +85,8 @@ impl Expectation {
             Expectation::Make(_, _) => TokenStream::new(),
             Expectation::Change(call, assertions) => {
                 let call_may_panic = assertions.iter().any(parse_panic_assertion);
-                let before_variable_name = Ident::new(format!("{}_before", expectation).as_str(), call.span());
+                let before_variable_name =
+                    Ident::new(format!("{}_before", expectation).as_str(), call.span());
 
                 if call_may_panic {
                     quote_spanned! { call.span() =>
@@ -70,7 +97,15 @@ impl Expectation {
                         let #before_variable_name = #call;
                     }
                 }
-            },
+            }
+            Expectation::NotChange(call) => {
+                let before_variable_name =
+                    Ident::new(format!("{}_before", expectation).as_str(), call.span());
+
+                quote_spanned! { call.span() =>
+                    let #before_variable_name = #call;
+                }
+            }
         }
     }
 
@@ -91,7 +126,7 @@ impl Expectation {
                         let #result_variable_name = subject_result.#call;
                     }
                 }
-            },
+            }
             Expectation::Make(call, assertions) => {
                 let call_may_panic = assertions.iter().any(parse_panic_assertion);
 
@@ -106,10 +141,11 @@ impl Expectation {
                         let #result_variable_name = #call;
                     }
                 }
-            },
+            }
             Expectation::Change(call, assertions) => {
                 let call_may_panic = assertions.iter().any(parse_panic_assertion);
-                let after_variable_name = Ident::new(format!("{}_after", expectation).as_str(), call.span());
+                let after_variable_name =
+                    Ident::new(format!("{}_after", expectation).as_str(), call.span());
 
                 if call_may_panic {
                     quote_spanned! { call.span() =>
@@ -120,7 +156,15 @@ impl Expectation {
                         let #after_variable_name = #call;
                     }
                 }
-            },
+            }
+            Expectation::NotChange(call) => {
+                let after_variable_name =
+                    Ident::new(format!("{}_after", expectation).as_str(), call.span());
+
+                quote_spanned! { call.span() =>
+                    let #after_variable_name = #call;
+                }
+            }
         }
     }
 
@@ -130,7 +174,8 @@ impl Expectation {
                 let assertion_label = assertion.to_token_stream().to_string();
                 let assertion_may_panic = parse_panic_assertion(assertion);
 
-                vec![(assertion_label,
+                vec![(
+                    assertion_label,
                     if assertion_may_panic {
                         quote_spanned! { assertion.span() =>
                             #assertion(&subject_result)
@@ -139,46 +184,59 @@ impl Expectation {
                         quote_spanned! { assertion.span() =>
                             #assertion(subject_result.clone())
                         }
-                    }
+                    },
                 )]
-            },
+            }
             Expectation::Have(_, assertions) => {
                 let call_may_panic = assertions.iter().any(parse_panic_assertion);
 
-                assertions.iter().map(|assertion| {
-                    let assertion_label = assertion.to_token_stream().to_string();
-                    let result_variable_name = Ident::new(expectation.as_str(), assertion.span());
+                assertions
+                    .iter()
+                    .map(|assertion| {
+                        let assertion_label = assertion.to_token_stream().to_string();
+                        let result_variable_name =
+                            Ident::new(expectation.as_str(), assertion.span());
 
-                    (assertion_label, if call_may_panic {
-                        quote_spanned! { assertion.span() =>
-                            #assertion(&#result_variable_name)
-                        }
-                    } else {
-                        quote_spanned! { assertion.span() =>
-                            #assertion(#result_variable_name.clone())
-                        }
+                        (
+                            assertion_label,
+                            if call_may_panic {
+                                quote_spanned! { assertion.span() =>
+                                    #assertion(&#result_variable_name)
+                                }
+                            } else {
+                                quote_spanned! { assertion.span() =>
+                                    #assertion(#result_variable_name.clone())
+                                }
+                            },
+                        )
                     })
-                }).collect()
-            },
+                    .collect()
+            }
             Expectation::Make(_, assertions) => {
                 let call_may_panic = assertions.iter().any(parse_panic_assertion);
 
-                assertions.iter().map(|assertion| {
-                    let assertion_label = assertion.to_token_stream().to_string();
-                    let result_variable_name = Ident::new(expectation.as_str(), assertion.span());
+                assertions
+                    .iter()
+                    .map(|assertion| {
+                        let assertion_label = assertion.to_token_stream().to_string();
+                        let result_variable_name =
+                            Ident::new(expectation.as_str(), assertion.span());
 
-                    (assertion_label, if call_may_panic {
-                        quote_spanned! { assertion.span() =>
-                            #assertion(&#result_variable_name)
-                        }
-                    } else {
-                        quote_spanned! { assertion.span() =>
-                            #assertion(#result_variable_name.clone())
-                        }
+                        (
+                            assertion_label,
+                            if call_may_panic {
+                                quote_spanned! { assertion.span() =>
+                                    #assertion(&#result_variable_name)
+                                }
+                            } else {
+                                quote_spanned! { assertion.span() =>
+                                    #assertion(#result_variable_name.clone())
+                                }
+                            },
+                        )
                     })
-                }).collect()
-
-            },
+                    .collect()
+            }
             Expectation::Change(call, assertions) => {
                 let call_may_panic = assertions.iter().any(parse_panic_assertion);
 
@@ -197,19 +255,40 @@ impl Expectation {
                         }
                     })
                 }).collect()
-            },
+            }
+            Expectation::NotChange(call) => {
+                let before_variable_name =
+                    Ident::new(format!("{}_before", expectation).as_str(), call.span());
+                let after_variable_name =
+                    Ident::new(format!("{}_after", expectation).as_str(), call.span());
+
+                vec![(
+                    "not change".to_string(),
+                    quote_spanned! { call.span() =>
+                        equal(#before_variable_name)(#after_variable_name)
+                    },
+                )]
+            }
         }
     }
 
     pub fn label(&self) -> Option<(String, String)> {
         match self {
             Expectation::Single(_) => None,
-            Expectation::Have(call, _) => ("have".to_string(), call.to_token_stream().to_string()).into(),
-            Expectation::Make(call, _) => ("make".to_string(), call.to_token_stream().to_string()).into(),
-            Expectation::Change(call, _) => ("change".to_string(), call.to_token_stream().to_string()).into(),
+            Expectation::Have(call, _) => {
+                ("have".to_string(), call.to_token_stream().to_string()).into()
+            }
+            Expectation::Make(call, _) => {
+                ("make".to_string(), call.to_token_stream().to_string()).into()
+            }
+            Expectation::Change(call, _) => {
+                ("change".to_string(), call.to_token_stream().to_string()).into()
+            }
+            Expectation::NotChange(call) => {
+                ("not change".to_string(), call.to_token_stream().to_string()).into()
+            }
         }
     }
-
 }
 
 fn parse_panic_assertion(assertion: &Expr) -> bool {
@@ -234,20 +313,22 @@ impl Parse for Expectation {
                         let arg = parse_arg(call)?;
                         let assertions = parse_assertions(input)?;
                         Ok(Expectation::Have(arg, assertions))
-                    },
+                    }
                     "make" => {
                         let arg = parse_arg(call)?;
                         let assertions = parse_assertions(input)?;
                         Ok(Expectation::Make(arg, assertions))
-                    },
+                    }
                     "change" => {
                         let arg = parse_arg(call)?;
                         let assertions = parse_assertions(input)?;
                         Ok(Expectation::Change(arg, assertions))
-                    },
-                    _ => {
-                        Ok(Expectation::Single(expr))
-                    },
+                    }
+                    "not_change" => {
+                        let arg = parse_arg(call)?;
+                        Ok(Expectation::NotChange(arg))
+                    }
+                    _ => Ok(Expectation::Single(expr)),
                 }
             } else {
                 Ok(Expectation::Single(expr))
