@@ -1,0 +1,16 @@
+{
+  "folders": [
+    {
+      "path": "lets_expect"
+    },
+    {
+      "path": "lets_expect_assertions"
+    },
+    {
+      "path": "lets_expect_core"
+    },
+    {
+      "path": "lets_expect_macro"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+[workspace]
+
+members = [
+    "lets_expect",
+    "lets_expect_core",
+    "lets_expect_assertions",
+    "lets_expect_macro",
+]

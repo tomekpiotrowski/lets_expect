@@ -1,0 +1,10 @@
+[package]
+name = "lets_expect_assertions"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+lets_expect_core = { path = "../lets_expect_core" }
+colored = "2.0.0"

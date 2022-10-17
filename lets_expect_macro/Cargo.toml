@@ -1,0 +1,20 @@
+[package]
+name = "lets_expect_macro"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+name = "lets_expect_macro"
+path = "src/lib.rs"
+proc-macro = true
+
+[dependencies]
+lets_expect_core = { path = "../lets_expect_core" }
+syn = { version = "*", features = ["full", "extra-traits"] }
+proc-macro2 = "*"
+quote = "*"
+
+[dev-dependencies]
+lets_expect_assertions = { path = "../lets_expect_assertions" }
