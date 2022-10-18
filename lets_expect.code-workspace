@@ -1,6 +1,9 @@
 {
   "folders": [
     {
+      "path": ".github"
+    },
+    {
       "path": "lets_expect"
     },
     {
