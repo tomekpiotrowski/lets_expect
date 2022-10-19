@@ -11,3 +11,4 @@ syn = { version = "*", features = ["full", "extra-traits"] }
 english-numbers = "0.3.3"
 proc-macro2 = "*"
 colored = "*"
+topological-sort = "0.2.2"

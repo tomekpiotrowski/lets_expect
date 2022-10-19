@@ -157,17 +157,11 @@ impl Context {
         let tos = self.tos.iter().map(|to| {
             let to_tokens = to.to_tokens(&runtime);
             let identifier = to.identifier();
-            let befores = &runtime.befores;
-            let afters = &runtime.afters;
 
             let content = quote_spanned! { identifier.span() =>
-                #(#befores)*
-
                 let test_case = {
                     #to_tokens
                 };
-
-                #(#afters)*
 
                 vec![test_case]
             };

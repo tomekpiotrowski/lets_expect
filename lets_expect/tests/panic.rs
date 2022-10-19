@@ -1,18 +1,19 @@
 struct IPanic {
-    pub should_panic: bool
+    pub should_panic: bool,
 }
 
 impl IPanic {
     pub fn new() -> Self {
-        Self { should_panic: false }
+        Self {
+            should_panic: false,
+        }
     }
 
     pub fn panic(&self) {
         panic!("panic");
     }
 
-    pub fn no_panic(&self) {
-    }
+    pub fn no_panic(&self) {}
 
     pub fn panic_if_should(&self) {
         if self.should_panic {
@@ -21,9 +22,9 @@ impl IPanic {
     }
 }
 
-mod expect {
-    use lets_expect::*;
+mod lets_expect {
     use crate::IPanic;
+    use lets_expect::lets_expect;
 
     lets_expect! {
         expect(panic!("I panicked!")) {
@@ -44,7 +45,7 @@ mod expect {
         expect("unrelated") {
             let i_panic = IPanic::new();
 
-            to panic_or_not_panic { 
+            to panic_or_not_panic {
                 make(i_panic.panic()) panic,
                 make(i_panic.no_panic()) not_panic
             }

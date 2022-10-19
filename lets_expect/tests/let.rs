@@ -1,5 +1,5 @@
 #[cfg(test)]
-mod expect {
+mod lets_expect {
     use lets_expect::*;
 
     lets_expect! {
@@ -23,5 +23,19 @@ mod expect {
 
             to be_true
         }
+
+        expect(multiplied_by_2) {
+            let value = 5;
+            let multiplied_by_2 = value * 2;
+
+            when(let value = 10;) {
+                to equal(20)
+            }
+
+            when(let value = value * 3;) {
+                to equal(30)
+            }
+        }
+
     }
 }

@@ -51,9 +51,6 @@ impl Parse for Story {
 
 impl Story {
     pub fn to_tokens(&self, runtime: &Runtime) -> TokenStream {
-        let befores = &runtime.befores;
-        let afters = &runtime.afters;
-
         let elements: Vec<TokenStream> = self
             .elements
             .iter()
@@ -66,11 +63,7 @@ impl Story {
         let content = quote_spanned! { self.identifier.span() =>
             let mut test_cases = Vec::new();
 
-            #(#befores)*
-
             #(#elements)*
-
-            #(#afters)*
 
             test_cases
         };

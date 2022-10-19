@@ -11,6 +11,7 @@ mod story_expect_to;
 mod to;
 mod to_block;
 mod to_ident;
+mod topological_sort;
 mod when;
 mod when_block;
 
