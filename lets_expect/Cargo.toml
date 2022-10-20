@@ -3,9 +3,11 @@ name = "lets_expect"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 lets_expect_core = { path = "../lets_expect_core" }
 lets_expect_assertions = { path = "../lets_expect_assertions" }
 lets_expect_macro = { path = "../lets_expect_macro" }
+tokio = { version = "1", features = ["macros"], optional = true }
+
+[features]
+tokio = ["dep:tokio", "lets_expect_core/tokio"]

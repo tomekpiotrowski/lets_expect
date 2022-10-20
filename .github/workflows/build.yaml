@@ -22,11 +22,22 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           toolchain: 1.57.0
+      - name: Check default features
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+      - name: Check all features
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --all-features
       - name: Run tests
         uses: actions-rs/cargo@v1
         with:
           command: test
+          args: --all-features
       - name: Run clippy
         uses: actions-rs/cargo@v1
         with:
           command: clippy
+          args: --all-features

@@ -2,9 +2,9 @@ use lets_expect::{AssertionError, AssertionResult};
 
 mod point;
 
-fn by_multiplying_by(x: i32) -> impl Fn(i32, i32) -> AssertionResult {
+fn by_multiplying_by(x: i32) -> impl Fn(&i32, &i32) -> AssertionResult {
     move |before, after| {
-        if after == before * x {
+        if *after == *before * x {
             Ok(())
         } else {
             Err(AssertionError::new(vec![format!(

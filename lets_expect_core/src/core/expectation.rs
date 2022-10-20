@@ -172,90 +172,59 @@ impl Expectation {
         match self {
             Expectation::Single(assertion) => {
                 let assertion_label = assertion.to_token_stream().to_string();
-                let assertion_may_panic = parse_panic_assertion(assertion);
 
                 vec![(
                     assertion_label,
-                    if assertion_may_panic {
-                        quote_spanned! { assertion.span() =>
-                            #assertion(&subject_result)
-                        }
-                    } else {
-                        quote_spanned! { assertion.span() =>
-                            #assertion(subject_result.clone())
-                        }
+                    quote_spanned! { assertion.span() =>
+                        #assertion(&subject_result)
                     },
                 )]
             }
-            Expectation::Have(_, assertions) => {
-                let call_may_panic = assertions.iter().any(parse_panic_assertion);
-
-                assertions
-                    .iter()
-                    .map(|assertion| {
-                        let assertion_label = assertion.to_token_stream().to_string();
-                        let result_variable_name =
-                            Ident::new(expectation.as_str(), assertion.span());
-
-                        (
-                            assertion_label,
-                            if call_may_panic {
-                                quote_spanned! { assertion.span() =>
-                                    #assertion(&#result_variable_name)
-                                }
-                            } else {
-                                quote_spanned! { assertion.span() =>
-                                    #assertion(#result_variable_name.clone())
-                                }
-                            },
-                        )
-                    })
-                    .collect()
-            }
-            Expectation::Make(_, assertions) => {
-                let call_may_panic = assertions.iter().any(parse_panic_assertion);
-
-                assertions
-                    .iter()
-                    .map(|assertion| {
-                        let assertion_label = assertion.to_token_stream().to_string();
-                        let result_variable_name =
-                            Ident::new(expectation.as_str(), assertion.span());
-
-                        (
-                            assertion_label,
-                            if call_may_panic {
-                                quote_spanned! { assertion.span() =>
-                                    #assertion(&#result_variable_name)
-                                }
-                            } else {
-                                quote_spanned! { assertion.span() =>
-                                    #assertion(#result_variable_name.clone())
-                                }
-                            },
-                        )
-                    })
-                    .collect()
-            }
-            Expectation::Change(call, assertions) => {
-                let call_may_panic = assertions.iter().any(parse_panic_assertion);
-
-                assertions.iter().map(|assertion| {
+            Expectation::Have(_, assertions) => assertions
+                .iter()
+                .map(|assertion| {
                     let assertion_label = assertion.to_token_stream().to_string();
-                    let before_variable_name = Ident::new(format!("{}_before", expectation).as_str(), call.span());
-                    let after_variable_name = Ident::new(format!("{}_after", expectation).as_str(), call.span());
+                    let result_variable_name = Ident::new(expectation.as_str(), assertion.span());
 
-                    (assertion_label, if call_may_panic {
+                    (
+                        assertion_label,
+                        quote_spanned! { assertion.span() =>
+                            #assertion(&#result_variable_name)
+                        },
+                    )
+                })
+                .collect(),
+            Expectation::Make(_, assertions) => assertions
+                .iter()
+                .map(|assertion| {
+                    let assertion_label = assertion.to_token_stream().to_string();
+                    let result_variable_name = Ident::new(expectation.as_str(), assertion.span());
+
+                    (
+                        assertion_label,
+                        quote_spanned! { assertion.span() =>
+                            #assertion(&#result_variable_name)
+                        },
+                    )
+                })
+                .collect(),
+            Expectation::Change(call, assertions) => assertions
+                .iter()
+                .map(|assertion| {
+                    let assertion_label = assertion.to_token_stream().to_string();
+                    let before_variable_name =
+                        Ident::new(format!("{}_before", expectation).as_str(), call.span());
+                    let after_variable_name =
+                        Ident::new(format!("{}_after", expectation).as_str(), call.span());
+
+                    (
+                        assertion_label,
                         quote_spanned! { assertion.span() =>
                             #assertion(&#before_variable_name, &#after_variable_name)
-                        }
-                    } else {
-                        quote_spanned! { assertion.span() =>
-                            #assertion(#before_variable_name.clone(), #after_variable_name.clone())
-                        }
-                    })
-                }).collect()
-            }
+                        },
+                    )
+                })
+                .collect(),
             Expectation::NotChange(call) => {
                 let before_variable_name =
                     Ident::new(format!("{}_before", expectation).as_str(), call.span());
@@ -265,7 +234,7 @@ impl Expectation {
                 vec![(
                     "not change".to_string(),
                     quote_spanned! { call.span() =>
-                        equal(#before_variable_name)(#after_variable_name)
+                        equal(#before_variable_name)(&#after_variable_name)
                     },
                 )]
             }

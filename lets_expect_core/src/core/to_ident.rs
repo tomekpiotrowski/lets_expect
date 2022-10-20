@@ -54,7 +54,7 @@ pub fn expr_to_ident(expr: &syn::Expr) -> String {
                 + &expr_to_ident(&assign_op.right)
         }
         Expr::Async(_) => todo!("Async not supported"),
-        Expr::Await(_) => todo!("Await not supported"),
+        Expr::Await(expr_await) => "await_".to_string() + &expr_to_ident(&expr_await.base),
         Expr::Binary(binary) => {
             expr_to_ident(&binary.left)
                 + "_"

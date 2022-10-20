@@ -31,9 +31,10 @@ pub fn create_test(identifier: &Ident, runtime: &Runtime, content: &TokenStream)
     let befores = &runtime.befores;
     let afters = &runtime.afters;
 
+    let test_declaration = test_declaration(identifier);
+
     quote_spanned! { identifier.span() =>
-        #[test]
-        fn #identifier() -> Result<(), TestFailure> {
+        #test_declaration {
             #(#lets)*
 
             #(#befores)*
@@ -46,5 +47,21 @@ pub fn create_test(identifier: &Ident, runtime: &Runtime, content: &TokenStream)
 
             test_result_from_cases(test_cases)
         }
+    }
+}
+
+#[cfg(feature = "tokio")]
+fn test_declaration(identifier: &Ident) -> TokenStream {
+    quote_spanned! { identifier.span() =>
+        #[tokio::test]
+        async fn #identifier() -> Result<(), TestFailure>
+    }
+}
+
+#[cfg(not(feature = "tokio"))]
+fn test_declaration(identifier: &Ident) -> TokenStream {
+    quote_spanned! { identifier.span() =>
+        #[test]
+        fn #identifier() -> Result<(), TestFailure>
     }
 }
