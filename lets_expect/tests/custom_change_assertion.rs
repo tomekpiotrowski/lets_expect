@@ -1,4 +1,4 @@
-use lets_expect::{AssertionResult, AssertionError};
+use lets_expect::{AssertionError, AssertionResult};
 
 mod point;
 
@@ -9,15 +9,19 @@ fn by_multiplying_by(x: i32) -> impl Fn(i32, i32) -> AssertionResult {
         } else {
             Err(AssertionError::new(vec![format!(
                 "Expected {} to be multiplied by {} to be {}, but it was {} instead",
-                before, x, before * x, after
+                before,
+                x,
+                before * x,
+                after
             )]))
         }
     }
 }
 
-mod expect {
-    use lets_expect::*;
+#[cfg(test)]
+mod tests {
     use super::*;
+    use lets_expect::lets_expect;
 
     lets_expect! {
         expect(a *= 5) {

@@ -1,4 +1,5 @@
-mod expect {
+#[cfg(test)]
+mod tests {
     use lets_expect::*;
 
     lets_expect! {
@@ -12,7 +13,7 @@ mod expect {
         }
 
         expect(2 + 4) {
-            to equal_6 { 
+            to equal_6 {
                 equal(6),
                 not_equal(5)
             }
