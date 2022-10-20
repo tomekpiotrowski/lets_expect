@@ -1,17 +1,47 @@
 use crate::core::to_ident::local_to_ident;
 use proc_macro2::{Ident, Span, TokenStream};
-use syn::spanned::Spanned;
-use syn::token::Paren;
+use syn::punctuated::Punctuated;
+use syn::token::{Paren, Semi};
 use syn::{braced, parenthesized, parse::Parse};
 
 use super::context::Context;
 use super::create_module::create_module;
 use super::runtime::Runtime;
-use syn::Local;
-use syn::Stmt;
 use syn::Token;
+use syn::{Attribute, Expr, Local, Pat};
 
 const WHEN_IDENT_PREFIX: &str = "when_";
+
+struct WhenLet {
+    pub attrs: Vec<Attribute>,
+    pub pat: Pat,
+    pub init: Option<(Token![=], Box<Expr>)>,
+}
+
+impl Parse for WhenLet {
+    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+        let attrs = input.call(Attribute::parse_outer)?;
+        let pat = input.parse()?;
+        let init = if input.peek(Token![=]) {
+            Some((input.parse()?, input.parse()?))
+        } else {
+            None
+        };
+        Ok(WhenLet { attrs, pat, init })
+    }
+}
+
+impl WhenLet {
+    pub fn to_local(&self) -> Local {
+        Local {
+            attrs: self.attrs.clone(),
+            let_token: Default::default(),
+            pat: self.pat.clone(),
+            init: self.init.clone(),
+            semi_token: Default::default(),
+        }
+    }
+}
 
 pub struct When {
     context: Context,
@@ -51,25 +81,17 @@ fn parse_lets_in_parentheses(
 ) -> Result<(Vec<Local>, Ident), syn::Error> {
     let content;
     parenthesized!(content in input);
-    let mut lets: Vec<Local> = Vec::new();
-    let mut next = content.lookahead1();
-    while next.peek(Token![let]) {
-        let local = content.parse::<Stmt>()?;
 
-        if let Stmt::Local(local) = local {
-            lets.push(local);
-        } else {
-            return Err(syn::Error::new(local.span(), "Expected `let`"));
-        }
+    let when_lets: Punctuated<WhenLet, Semi> = Punctuated::parse_separated_nonempty(&content)?;
+    let lets: Vec<Local> = when_lets.iter().map(WhenLet::to_local).collect();
 
-        next = content.lookahead1();
-    }
     if lets.is_empty() {
         return Err(syn::Error::new(
             Span::call_site(),
             "Expected at least one assignment",
         ));
     }
+
     let name = WHEN_IDENT_PREFIX.to_string()
         + lets
             .iter()
