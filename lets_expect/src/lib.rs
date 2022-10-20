@@ -23,8 +23,8 @@
 //!     let invalid_category = -1;
 //!
 //!     expect(create_post(title, category_id)) {
-//!         when(let title = valid_title;) {
-//!             when (let category_id = valid_category;) {
+//!         when(title = valid_title) {
+//!             when (category_id = valid_category) {
 //!                 to create_a_post {
 //!                     be_ok,
 //!                     have(unwrap().body.title) equal(valid_title),
@@ -32,7 +32,7 @@
 //!                 }
 //!             }
 //!
-//!             when (let category_id = invalid_category;) {
+//!             when (category_id = invalid_category) {
 //!                 to return_an_error {
 //!                     be_err,
 //!                     have(unwrap_err().message) equal("Invalid category"),

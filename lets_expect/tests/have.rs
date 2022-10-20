@@ -21,7 +21,7 @@ mod tests {
                 have(y) { equal(6), not_equal(5) }
             }
 
-            when(let valid_sum = "(4, 6)".to_string();) {
+            when(valid_sum = "(4, 6)".to_string()) {
                 to have(to_string()) equal(valid_sum)
             }
         }

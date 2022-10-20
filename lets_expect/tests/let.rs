@@ -28,11 +28,11 @@ mod tests {
             let value = 5;
             let multiplied_by_2 = value * 2;
 
-            when(let value = 10;) {
+            when(value = 10) {
                 to equal(20)
             }
 
-            when(let value = value * 3;) {
+            when(value = value * 3) {
                 to equal(30)
             }
         }

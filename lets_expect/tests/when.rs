@@ -4,10 +4,10 @@ mod tests {
 
     lets_expect! {
         expect(a + b + c) {
-            when(let a = 2;) {
+            when(a = 2) {
                 when (
-                    let b = 1;
-                    let c = 1;
+                    b = 1;
+                    c = 1
                 ) {
                     to equal_4 {
                         equal(4),
@@ -16,7 +16,7 @@ mod tests {
                 }
             }
 
-            when(let c = 3;) {
+            when(c = 3) {
                 expect(two + c + 10) {
                     let two = 2;
 
