@@ -24,7 +24,7 @@
 //!
 //!     expect(create_post(title, category_id)) {
 //!         when(title = valid_title) {
-//!             when (category_id = valid_category) {
+//!             when(category_id = valid_category) {
 //!                 to create_a_post {
 //!                     be_ok,
 //!                     have(unwrap().body.title) equal(valid_title),
@@ -32,7 +32,7 @@
 //!                 }
 //!             }
 //!
-//!             when (category_id = invalid_category) {
+//!             when(category_id = invalid_category) {
 //!                 to return_an_error {
 //!                     be_err,
 //!                     have(unwrap_err().message) equal("Invalid category"),
@@ -69,3 +69,6 @@ pub use lets_expect_core::assertions::assertion_error::AssertionError;
 pub use lets_expect_core::assertions::assertion_result::AssertionResult;
 
 pub use lets_expect_assertions::assertions::*;
+
+#[cfg(feature = "tokio")]
+pub use tokio;

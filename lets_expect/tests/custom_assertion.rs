@@ -3,7 +3,7 @@ use lets_expect::{AssertionError, AssertionResult};
 
 use crate::point::Point;
 
-fn have_positive_coordinates(point: Point) -> AssertionResult {
+fn have_positive_coordinates(point: &Point) -> AssertionResult {
     if point.x > 0 && point.y > 0 {
         Ok(())
     } else {
@@ -14,7 +14,7 @@ fn have_positive_coordinates(point: Point) -> AssertionResult {
     }
 }
 
-fn have_x_coordinate_equal(x: i32) -> impl Fn(Point) -> AssertionResult {
+fn have_x_coordinate_equal(x: i32) -> impl Fn(&Point) -> AssertionResult {
     move |point| {
         if point.x == x {
             Ok(())
