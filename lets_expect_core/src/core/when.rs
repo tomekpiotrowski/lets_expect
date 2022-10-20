@@ -1,11 +1,12 @@
+use crate::core::to_ident::local_to_ident;
 use proc_macro2::{Ident, Span, TokenStream};
 use syn::spanned::Spanned;
-use syn::{parse::Parse, braced, parenthesized};
-use crate::core::to_ident::local_to_ident;
+use syn::token::Paren;
+use syn::{braced, parenthesized, parse::Parse};
 
-use super::runtime::Runtime;
-use super::create_module::create_module;
 use super::context::Context;
+use super::create_module::create_module;
+use super::runtime::Runtime;
 use syn::Local;
 use syn::Stmt;
 use syn::Token;
@@ -20,38 +21,64 @@ pub struct When {
 
 impl Parse for When {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        let content;
-        parenthesized!(content in input);
-
-        let mut lets: Vec<Local> = Vec::new();
-
-        let mut next = content.lookahead1();
-
-        while next.peek(Token![let]) {
-            let local = content.parse::<Stmt>()?;
-
-            if let Stmt::Local(local) = local {
-                lets.push(local);
-            } else {
-                return Err(syn::Error::new(local.span(), "Expected `let`"));
-            }
-
-            next = content.lookahead1();
-        }
-
-        if lets.is_empty() {
-            return Err(syn::Error::new(Span::call_site(), "Expected at least one assignment"));
-        }
-
-        let name = WHEN_IDENT_PREFIX.to_string() + lets.iter().map(local_to_ident).collect::<Vec<String>>().join("_").as_str();
-        let identifier = Ident::new(name.as_str(), input.span());
+        let (lets, identifier) = if input.peek(Paren) {
+            parse_lets_in_parentheses(input)?
+        } else {
+            let identifier = input.parse::<Ident>()?;
+            (
+                Vec::new(),
+                Ident::new(
+                    &format!("{}{}", WHEN_IDENT_PREFIX, identifier),
+                    identifier.span(),
+                ),
+            )
+        };
 
         let content;
         braced!(content in input);
         let context = content.parse::<Context>()?;
 
-        Ok(When { lets, identifier, context })
+        Ok(When {
+            lets,
+            identifier,
+            context,
+        })
     }
+}
+
+fn parse_lets_in_parentheses(
+    input: &syn::parse::ParseBuffer,
+) -> Result<(Vec<Local>, Ident), syn::Error> {
+    let content;
+    parenthesized!(content in input);
+    let mut lets: Vec<Local> = Vec::new();
+    let mut next = content.lookahead1();
+    while next.peek(Token![let]) {
+        let local = content.parse::<Stmt>()?;
+
+        if let Stmt::Local(local) = local {
+            lets.push(local);
+        } else {
+            return Err(syn::Error::new(local.span(), "Expected `let`"));
+        }
+
+        next = content.lookahead1();
+    }
+    if lets.is_empty() {
+        return Err(syn::Error::new(
+            Span::call_site(),
+            "Expected at least one assignment",
+        ));
+    }
+    let name = WHEN_IDENT_PREFIX.to_string()
+        + lets
+            .iter()
+            .map(local_to_ident)
+            .collect::<Vec<String>>()
+            .join("_")
+            .as_str();
+    let identifier = Ident::new(name.as_str(), input.span());
+    Ok((lets, identifier))
 }
 
 impl When {

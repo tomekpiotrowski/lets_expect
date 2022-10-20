@@ -1,6 +1,6 @@
 #[cfg(test)]
-mod expect {
-    use lets_expect::*;
+mod tests {
+    use lets_expect::lets_expect;
 
     lets_expect! {
         expect(a + b + c) {
@@ -22,6 +22,14 @@ mod expect {
 
                     to equal(15)
                 }
+            }
+
+            when all_numbers_are_negative {
+                let a = -1;
+                let b = -2;
+                let c = -3;
+
+                to equal(-6)
             }
         }
     }
