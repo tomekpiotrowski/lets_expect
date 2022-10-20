@@ -1,5 +1,5 @@
 #[cfg(test)]
-mod lets_expect {
+mod tests {
     use lets_expect::*;
 
     lets_expect! {

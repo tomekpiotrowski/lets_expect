@@ -22,7 +22,8 @@ impl IPanic {
     }
 }
 
-mod lets_expect {
+#[cfg(test)]
+mod tests {
     use crate::IPanic;
     use lets_expect::lets_expect;
 

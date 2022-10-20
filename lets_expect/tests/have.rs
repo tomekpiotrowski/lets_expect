@@ -1,8 +1,9 @@
 mod point;
 
-mod expect {
-    use lets_expect::*;
+#[cfg(test)]
+mod tests {
     use crate::point::Point;
+    use lets_expect::*;
 
     lets_expect! {
         expect(a) {

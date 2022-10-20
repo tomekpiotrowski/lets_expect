@@ -108,9 +108,9 @@ fn handle_expect(ident: Ident, input: &ParseBuffer) -> syn::Result<ExpectBlock> 
     Ok(ExpectBlock::new(ident, expect))
 }
 
-fn handle_when(ident: Ident, input: &ParseBuffer) -> syn::Result<WhenBlock> {
+fn handle_when(keyword: Ident, input: &ParseBuffer) -> syn::Result<WhenBlock> {
     let when = input.parse::<When>()?;
-    Ok(WhenBlock::new(ident, when))
+    Ok(WhenBlock::new(keyword, when))
 }
 
 fn handle_to(ident: Ident, input: &ParseBuffer) -> syn::Result<ToBlock> {
