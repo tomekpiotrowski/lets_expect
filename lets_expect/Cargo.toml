@@ -9,5 +9,8 @@ lets_expect_assertions = { path = "../lets_expect_assertions" }
 lets_expect_macro = { path = "../lets_expect_macro" }
 tokio = { version = "1", features = ["macros"], optional = true }
 
+[dev-dependencies]
+tokio-test = { version = "0.4.2" }
+
 [features]
 tokio = ["dep:tokio", "lets_expect_core/tokio"]

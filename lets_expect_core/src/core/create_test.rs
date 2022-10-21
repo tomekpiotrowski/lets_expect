@@ -2,6 +2,7 @@ use proc_macro2::{Ident, TokenStream};
 use quote::quote_spanned;
 
 use super::{
+    mode::Mode,
     runtime::Runtime,
     topological_sort::{topological_sort, TopologicalSortError},
 };
@@ -31,7 +32,7 @@ pub fn create_test(identifier: &Ident, runtime: &Runtime, content: &TokenStream)
     let befores = &runtime.befores;
     let afters = &runtime.afters;
 
-    let test_declaration = test_declaration(identifier);
+    let test_declaration = test_declaration(identifier, runtime.mode.clone().unwrap_or(Mode::Test));
 
     quote_spanned! { identifier.span() =>
         #test_declaration {
@@ -50,18 +51,22 @@ pub fn create_test(identifier: &Ident, runtime: &Runtime, content: &TokenStream)
     }
 }
 
-#[cfg(feature = "tokio")]
-fn test_declaration(identifier: &Ident) -> TokenStream {
-    quote_spanned! { identifier.span() =>
-        #[tokio::test]
-        async fn #identifier() -> Result<(), TestFailure>
-    }
-}
-
-#[cfg(not(feature = "tokio"))]
-fn test_declaration(identifier: &Ident) -> TokenStream {
-    quote_spanned! { identifier.span() =>
-        #[test]
-        fn #identifier() -> Result<(), TestFailure>
+fn test_declaration(identifier: &Ident, mode: Mode) -> TokenStream {
+    match mode {
+        Mode::Test => quote_spanned! { identifier.span() =>
+            #[test]
+            fn #identifier() -> Result<(), TestFailure>
+        },
+        Mode::PubMethod => quote_spanned! { identifier.span() =>
+            pub fn #identifier() -> Result<(), TestFailure>
+        },
+        Mode::PubAsyncMethod => quote_spanned! { identifier.span() =>
+            pub async fn #identifier() -> Result<(), TestFailure>
+        },
+        #[cfg(feature = "tokio")]
+        Mode::TokioTest => quote_spanned! { identifier.span() =>
+            #[tokio::test]
+            async fn #identifier() -> Result<(), TestFailure>
+        },
     }
 }

@@ -5,7 +5,7 @@ pub fn create_module(span: &Span, identifier: &Ident, content: &TokenStream) -> 
     let content = content;
 
     quote_spanned! { *span =>
-        mod #identifier {
+        pub mod #identifier {
             #[allow(unused_imports)]
             pub use super::*;
 

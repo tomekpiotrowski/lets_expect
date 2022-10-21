@@ -2,7 +2,7 @@
 mod tests {
     use lets_expect::lets_expect;
 
-    lets_expect! {
+    lets_expect! { #tokio_test
         let value = 5;
         let spawned = tokio::spawn(async move {
             value

@@ -5,6 +5,7 @@ mod create_test;
 mod expect;
 mod expect_block;
 mod expectation;
+mod mode;
 mod story;
 mod story_block;
 mod story_expect_to;

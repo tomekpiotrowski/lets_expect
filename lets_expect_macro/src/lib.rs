@@ -1,10 +1,10 @@
 extern crate proc_macro;
 
-use lets_expect_core::core::{runtime::Runtime, context::Context};
-use proc_macro::{TokenStream};
+use lets_expect_core::core::{context::Context, runtime::Runtime};
+use proc_macro::TokenStream;
 use proc_macro2::Span;
-use syn::parse_macro_input;
 use quote::quote;
+use syn::parse_macro_input;
 
 #[proc_macro]
 pub fn lets_expect(input: TokenStream) -> TokenStream {
@@ -19,6 +19,6 @@ fn lets_expect_macro(input: TokenStream) -> TokenStream {
         use lets_expect::*;
 
         #tests
-    }.into()
+    }
+    .into()
 }
-

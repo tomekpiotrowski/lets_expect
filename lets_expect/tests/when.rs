@@ -16,6 +16,10 @@ mod tests {
                 }
             }
 
+            when(a = 3; b = 3; c = 3) {
+                to equal(9)
+            }
+
             when(c = 3) {
                 expect(two + c + 10) {
                     let two = 2;
