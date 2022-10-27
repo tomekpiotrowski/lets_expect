@@ -1,7 +1,7 @@
 use super::{
     after_block::AfterBlock, before_block::BeforeBlock, create_test::create_test, expect::Expect,
-    expect_block::ExpectBlock, runtime::Runtime, story::Story, story_block::StoryBlock, to::To,
-    to_block::ToBlock, when::When, when_block::WhenBlock,
+    expect_block::ExpectBlock, mode::Mode, runtime::Runtime, story::Story, story_block::StoryBlock,
+    to::To, to_block::ToBlock, when::When, when_block::WhenBlock,
 };
 use proc_macro2::{Span, TokenStream};
 use quote::quote_spanned;
@@ -22,10 +22,13 @@ pub struct Context {
     expects: Vec<ExpectBlock>,
     whens: Vec<WhenBlock>,
     stories: Vec<StoryBlock>,
+
+    mode: Option<Mode>,
 }
 
 impl Parse for Context {
     fn parse(input: ParseStream) -> syn::Result<Self> {
+        let mut mode = None;
         let mut befores = Vec::new();
         let mut afters = Vec::new();
         let mut tos = Vec::new();
@@ -33,6 +36,20 @@ impl Parse for Context {
         let mut whens = Vec::new();
         let mut expects = Vec::new();
         let mut stories = Vec::new();
+
+        if input.peek(Token![#]) {
+            input.parse::<Token![#]>()?;
+            let mode_ident = input.parse::<Ident>()?;
+
+            mode = Some(match mode_ident.to_string().as_str() {
+                "test" => Mode::Test,
+                "method" => Mode::PubMethod,
+                "method_async" => Mode::PubAsyncMethod,
+                #[cfg(feature = "tokio")]
+                "tokio_test" => Mode::TokioTest,
+                _ => return Err(Error::new(mode_ident.span(), "Unknown mode")),
+            });
+        }
 
         let mut next = input.lookahead1();
 
@@ -89,6 +106,7 @@ impl Parse for Context {
             expects,
             whens,
             stories,
+            mode,
         })
     }
 }
@@ -152,6 +170,7 @@ impl Context {
                 .iter()
                 .map(|before| before.after.clone())
                 .collect::<Vec<Block>>(),
+            self.mode,
         );
 
         let tos = self.tos.iter().map(|to| {

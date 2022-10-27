@@ -7,26 +7,34 @@ use syn::{braced, parenthesized, parse::Parse};
 use super::context::Context;
 use super::create_module::create_module;
 use super::runtime::Runtime;
-use syn::Token;
-use syn::{Attribute, Expr, Local, Pat};
+use syn::{Attribute, Expr, Local, Pat, Type};
+use syn::{PatType, Token};
 
 const WHEN_IDENT_PREFIX: &str = "when_";
 
 struct WhenLet {
     pub attrs: Vec<Attribute>,
     pub pat: Pat,
-    pub init: Option<(Token![=], Box<Expr>)>,
+    pub init: (Token![=], Box<Expr>),
 }
 
 impl Parse for WhenLet {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         let attrs = input.call(Attribute::parse_outer)?;
-        let pat = input.parse()?;
-        let init = if input.peek(Token![=]) {
-            Some((input.parse()?, input.parse()?))
-        } else {
-            None
-        };
+        let mut pat = input.parse()?;
+
+        if input.peek(Token![:]) {
+            let colon_token: Token![:] = input.parse()?;
+            let ty: Type = input.parse()?;
+            pat = Pat::Type(PatType {
+                attrs: Vec::new(),
+                pat: Box::new(pat),
+                colon_token,
+                ty: Box::new(ty),
+            });
+        }
+
+        let init = (input.parse()?, input.parse()?);
         Ok(WhenLet { attrs, pat, init })
     }
 }
@@ -37,7 +45,7 @@ impl WhenLet {
             attrs: self.attrs.clone(),
             let_token: Default::default(),
             pat: self.pat.clone(),
-            init: self.init.clone(),
+            init: Some(self.init.clone()),
             semi_token: Default::default(),
         }
     }

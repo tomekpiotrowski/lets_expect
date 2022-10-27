@@ -109,7 +109,7 @@ pub fn expr_to_ident(expr: &syn::Expr) -> String {
         Expr::Struct(struc) => struc.path.get_ident().unwrap().to_string().to_lowercase(),
         Expr::Try(_) => todo!("Try not supported"),
         Expr::TryBlock(_) => todo!("TryBlock not supported"),
-        Expr::Tuple(_) => todo!("Tuple not supported"),
+        Expr::Tuple(tuple) => punctuated_to_ident(&tuple.elems),
         Expr::Type(_) => todo!("Type not supported"),
         Expr::Unary(unary) => {
             unary_op_to_ident(&unary.op).to_string() + "_" + &expr_to_ident(&unary.expr)
@@ -207,18 +207,32 @@ fn expr_lit_to_ident(lit: &syn::ExprLit) -> String {
         Lit::ByteStr(_) => todo!(),
         Lit::Byte(_) => todo!(),
         Lit::Char(_) => todo!(),
-        Lit::Int(value) => convert(
-            value.base10_parse::<i64>().unwrap(),
-            Formatting {
-                dashes: false,
-                title_case: false,
-                ..Formatting::default()
-            },
-        ),
-        Lit::Float(_) => todo!(),
+        Lit::Int(value) => humanize(value.base10_parse::<i64>().unwrap()),
+        Lit::Float(value) => {
+            let value: f64 = value.base10_parse().unwrap();
+            let formatted = format!("{:.2}", value);
+            let parts = formatted.split(".").collect::<Vec<&str>>();
+            let int_part = parts[0].parse::<i64>().unwrap();
+            let fraction_part = parts[1].parse::<i64>().unwrap();
+            let int_part = humanize(int_part);
+            let fraction_part = humanize(fraction_part);
+
+            format!("{}_point_{}", int_part, fraction_part)
+        }
         Lit::Bool(value) => value.value.to_string(),
         Lit::Verbatim(_) => todo!(),
     }
+}
+
+fn humanize(value: i64) -> String {
+    convert(
+        value,
+        Formatting {
+            dashes: false,
+            title_case: false,
+            ..Formatting::default()
+        },
+    )
 }
 
 fn unary_op_to_ident(op: &UnOp) -> &'static str {

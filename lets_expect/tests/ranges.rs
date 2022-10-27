@@ -8,9 +8,6 @@ mod tests {
                 have(contains(&2)) equal(true),
                 have(contains(&5)) not_equal(true),
                 have(len()) equal(3)
-                //contain(&2),
-                //not_contain(&7),
-                //not_be_empty,
             }
         }
     }

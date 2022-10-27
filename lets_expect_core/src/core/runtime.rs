@@ -1,11 +1,14 @@
 use syn::{Block, Expr, Local};
 
+use super::mode::Mode;
+
 #[derive(Debug, Default)]
 pub struct Runtime {
     pub subject: Option<Expr>,
     pub lets: Vec<Local>,
     pub befores: Vec<Block>,
     pub afters: Vec<Block>,
+    pub mode: Option<Mode>,
 }
 
 impl Runtime {
@@ -15,6 +18,7 @@ impl Runtime {
         lets: &[Local],
         befores: &[Block],
         afters: &[Block],
+        mode: Option<Mode>,
     ) -> Runtime {
         let new_subject = if let Some(subject) = subject {
             Some(subject)
@@ -40,11 +44,18 @@ impl Runtime {
             new_afters
         };
 
+        let new_mode = if mode.is_some() {
+            mode
+        } else {
+            self.mode.clone()
+        };
+
         Runtime {
             subject: new_subject,
             lets: new_lets,
             befores: new_befores,
             afters: new_afters,
+            mode: new_mode,
         }
     }
 }

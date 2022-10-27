@@ -50,7 +50,13 @@ impl Parse for StoryExpectTo {
 
 impl StoryExpectTo {
     pub fn to_tokens(&self, runtime: &Runtime) -> TokenStream {
-        let runtime = runtime.extend(Some(self.subject.clone()), &[], &Vec::new(), &Vec::new());
+        let runtime = runtime.extend(
+            Some(self.subject.clone()),
+            &[],
+            &Vec::new(),
+            &Vec::new(),
+            None,
+        );
         let to_tokens = self.to.to_tokens(&runtime);
 
         quote_spanned! { self.keyword.span() =>
