@@ -11,10 +11,10 @@ path = "src/lib.rs"
 proc-macro = true
 
 [dependencies]
-lets_expect_core = { path = "../lets_expect_core" }
+lets_expect_core = { version = "0", path = "../lets_expect_core" }
 syn = { version = "*", features = ["full", "extra-traits"] }
 proc-macro2 = "*"
 quote = "*"
 
 [dev-dependencies]
-lets_expect_assertions = { path = "../lets_expect_assertions" }
+lets_expect_assertions = { version = "0", path = "../lets_expect_assertions" }
