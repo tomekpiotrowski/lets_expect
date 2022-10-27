@@ -1,7 +1,7 @@
 [workspace]
 
 [workspace.package]
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Tomek Piotrowski"]
 documentation = "https://docs.rs/lets_expect"
 rust-version = "1.64"
