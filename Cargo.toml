@@ -1,8 +1,40 @@
 [workspace]
 
-members = [
-    "lets_expect",
-    "lets_expect_core",
-    "lets_expect_assertions",
-    "lets_expect_macro",
-]
+[workspace.package]
+version = "0.1.0"
+authors = ["Tomek Piotrowski"]
+documentation = "https://docs.rs/lets_expect"
+rust-version = "1.64"
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/tomekpiotrowski/lets_expect"
+categories = ["development-tools::testing"]
+
+[workspace.dependencies]
+tokio = { version = "1", features = ["macros"] }
+syn = { version = "1.0.103", features = ["full", "extra-traits"] }
+quote = "1.0.21"
+proc-macro2 = "1.0.47"
+colored = "2.0.0"
+
+[package]
+name = "lets_expect"
+description = "Clean tests for Rust"
+version.workspace = true
+edition.workspace = true
+license.workspace =  true
+repository.workspace = true
+rust-version.workspace = true
+categories.workspace = true
+
+[dependencies]
+lets_expect_core = { version = "0", path = "lets_expect_core" }
+lets_expect_assertions = { version = "0", path = "lets_expect_assertions" }
+lets_expect_macro = { version = "0", path = "lets_expect_macro" }
+tokio = { workspace = true, optional = true }
+
+[dev-dependencies]
+tokio-test = { version = "0.4.2" }
+
+[features]
+tokio = ["dep:tokio", "lets_expect_assertions/tokio", "lets_expect_core/tokio", "lets_expect_macro/tokio"]

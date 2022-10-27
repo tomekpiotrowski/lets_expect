@@ -1,15 +1,24 @@
 [package]
 name = "lets_expect_core"
-version = "0.1.0"
-edition = "2021"
+description = "Core lets_expect code. This crate is internal to the lets_expect crate and should not be used directly."
+version.workspace = true
+edition.workspace = true
+license.workspace =  true
+repository.workspace = true
+rust-version.workspace = true
+categories.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-quote = "*"
-syn = { version = "*", features = ["full", "extra-traits"] }
+quote.workspace = true
+syn.workspace = true
+proc-macro2.workspace = true
+colored.workspace = true
+
 english-numbers = "0.3.3"
-proc-macro2 = "*"
-colored = "*"
 topological-sort = "0.2.2"
-tokio = { version = "1", features = ["full"], optional = true }
+tokio = { workspace = true, optional = true }
+
+[features]
+tokio = ["dep:tokio"]
