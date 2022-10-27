@@ -1,7 +1,10 @@
 [package]
 name = "lets_expect_macro"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
+description = "lets_expect! macro. This crate is internal to the lets_expect crate and should not be used directly."
+repository = "https://github.com/tomekpiotrowski/lets_expect"
+license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -12,9 +15,9 @@ proc-macro = true
 
 [dependencies]
 lets_expect_core = { version = "0", path = "../lets_expect_core" }
-syn = { version = "*", features = ["full", "extra-traits"] }
-proc-macro2 = "*"
-quote = "*"
+syn = { version = "1.0.103", features = ["full", "extra-traits"] }
+proc-macro2 = "1.0.47"
+quote = "1.0.21"
 
 [dev-dependencies]
 lets_expect_assertions = { version = "0", path = "../lets_expect_assertions" }

@@ -1,7 +1,10 @@
 [package]
 name = "lets_expect_assertions"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
+description = "lets_expect assertions. This crate is internal to the lets_expect crate and should not be used directly."
+repository = "https://github.com/tomekpiotrowski/lets_expect"
+license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
