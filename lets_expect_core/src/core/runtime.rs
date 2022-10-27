@@ -44,11 +44,7 @@ impl Runtime {
             new_afters
         };
 
-        let new_mode = if mode.is_some() {
-            mode
-        } else {
-            self.mode.clone()
-        };
+        let new_mode = if mode.is_some() { mode } else { self.mode };
 
         Runtime {
             subject: new_subject,

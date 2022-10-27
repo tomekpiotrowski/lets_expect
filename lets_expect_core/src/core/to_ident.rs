@@ -211,7 +211,7 @@ fn expr_lit_to_ident(lit: &syn::ExprLit) -> String {
         Lit::Float(value) => {
             let value: f64 = value.base10_parse().unwrap();
             let formatted = format!("{:.2}", value);
-            let parts = formatted.split(".").collect::<Vec<&str>>();
+            let parts = formatted.split('.').collect::<Vec<&str>>();
             let int_part = parts[0].parse::<i64>().unwrap();
             let fraction_part = parts[1].parse::<i64>().unwrap();
             let int_part = humanize(int_part);

@@ -1,7 +1,12 @@
 [package]
 name = "lets_expect_macro"
-version = "0.1.0"
-edition = "2021"
+description = "lets_expect! macro. This crate is internal to the lets_expect crate and should not be used directly."
+version.workspace = true
+edition.workspace = true
+license.workspace =  true
+repository.workspace = true
+rust-version.workspace = true
+categories.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -12,9 +17,12 @@ proc-macro = true
 
 [dependencies]
 lets_expect_core = { version = "0", path = "../lets_expect_core" }
-syn = { version = "*", features = ["full", "extra-traits"] }
-proc-macro2 = "*"
-quote = "*"
+quote.workspace = true
+syn.workspace = true
+proc-macro2.workspace = true
 
 [dev-dependencies]
 lets_expect_assertions = { version = "0", path = "../lets_expect_assertions" }
+
+[features]
+tokio = ["lets_expect_core/tokio"]

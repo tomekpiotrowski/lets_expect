@@ -32,7 +32,7 @@ pub fn create_test(identifier: &Ident, runtime: &Runtime, content: &TokenStream)
     let befores = &runtime.befores;
     let afters = &runtime.afters;
 
-    let test_declaration = test_declaration(identifier, runtime.mode.clone().unwrap_or(Mode::Test));
+    let test_declaration = test_declaration(identifier, runtime.mode.unwrap_or(Mode::Test));
 
     quote_spanned! { identifier.span() =>
         #test_declaration {
