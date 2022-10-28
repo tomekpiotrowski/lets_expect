@@ -11,7 +11,7 @@ categories.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-lets_expect_core = { version = "=0.1.1", path = "../lets_expect_core" }
+lets_expect_core = { version = "=0.2.0", path = "../lets_expect_core" }
 colored.workspace = true
 
 [features]
