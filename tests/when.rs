@@ -6,7 +6,7 @@ mod tests {
         expect(a + b + c) {
             when(a = 2) {
                 when (
-                    b = 1;
+                    b = 1,
                     c = 1
                 ) {
                     to equal_4 {
@@ -16,7 +16,7 @@ mod tests {
                 }
             }
 
-            when(a = 3; b = 3; c = 3) {
+            when(a = 3, b = 3, c = 3) {
                 to equal(9)
             }
 
@@ -34,6 +34,12 @@ mod tests {
                 let c = -3;
 
                 to equal(-6)
+            }
+        }
+
+        expect(array) {
+            when(array = [1, 2, 3]) {
+                to equal([1, 2, 3])
             }
         }
     }

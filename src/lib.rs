@@ -94,7 +94,7 @@
 //!         }
 //!     }
 //!
-//!     when(title = invalid_title; category_id = valid_category) { to be_err }
+//!     when(title = invalid_title, category_id = valid_category) { to be_err }
 //! }
 //! # }
 //! # }
@@ -370,7 +370,7 @@
 //!             to equal(10)
 //!         }
 //!
-//!         when(a = 10; b = 10) {
+//!         when(a = 10, b = 10) {
 //!             to equal(25)
 //!         }
 //!     }

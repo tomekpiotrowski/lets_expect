@@ -1,7 +1,7 @@
 use crate::core::to_ident::local_to_ident;
 use proc_macro2::{Ident, Span, TokenStream};
 use syn::punctuated::Punctuated;
-use syn::token::{Paren, Semi};
+use syn::token::{Comma, Paren};
 use syn::{braced, parenthesized, parse::Parse};
 
 use super::context::Context;
@@ -90,7 +90,7 @@ fn parse_lets_in_parentheses(
     let content;
     parenthesized!(content in input);
 
-    let when_lets: Punctuated<WhenLet, Semi> = Punctuated::parse_separated_nonempty(&content)?;
+    let when_lets: Punctuated<WhenLet, Comma> = Punctuated::parse_separated_nonempty(&content)?;
     let lets: Vec<Local> = when_lets.iter().map(WhenLet::to_local).collect();
 
     if lets.is_empty() {
