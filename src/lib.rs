@@ -740,6 +740,7 @@
 //! after the subject is evaluated and the assertions are verified. `after` block is guaranteed to be executed even if the subject evaluation or the assertions fail.
 //!
 //! `before` blocks are run in the order they are defined. Parent `before` blocks being run before child `before` blocks. The reverse is true for `after` blocks.
+//! `after` blocks are guaranteed to run even if assertions fail. They however will not run if the let statements, before blocks, subject evaluation or assertions panic.
 //!
 //! ```
 //! # mod tests {
