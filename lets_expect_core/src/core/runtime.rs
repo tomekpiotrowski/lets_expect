@@ -39,8 +39,8 @@ impl Runtime {
         };
 
         let new_afters = {
-            let mut new_afters = self.afters.clone();
-            new_afters.extend(afters.to_owned());
+            let mut new_afters = afters.to_owned();
+            new_afters.extend(self.afters.clone());
             new_afters
         };
 
