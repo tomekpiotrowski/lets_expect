@@ -123,7 +123,7 @@ impl Expectation {
                     }
                 } else {
                     quote_spanned! { call.span() =>
-                        let #result_variable_name = subject_result.#call;
+                        let #result_variable_name = &subject_result.#call;
                     }
                 }
             }
@@ -138,7 +138,7 @@ impl Expectation {
                     }
                 } else {
                     quote_spanned! { call.span() =>
-                        let #result_variable_name = #call;
+                        let #result_variable_name = &#call;
                     }
                 }
             }
@@ -153,7 +153,7 @@ impl Expectation {
                     }
                 } else {
                     quote_spanned! { call.span() =>
-                        let #after_variable_name = #call;
+                        let #after_variable_name = &#call;
                     }
                 }
             }
@@ -162,7 +162,7 @@ impl Expectation {
                     Ident::new(format!("{}_after", expectation).as_str(), call.span());
 
                 quote_spanned! { call.span() =>
-                    let #after_variable_name = #call;
+                    let #after_variable_name = &#call;
                 }
             }
         }

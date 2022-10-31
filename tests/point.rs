@@ -1,6 +1,6 @@
-use std::{ops::Add, fmt::Display, fmt::Debug};
+use std::{fmt::Debug, fmt::Display, ops::Add};
 
-#[derive(Clone)]
+#[derive(PartialEq)]
 pub struct Point {
     pub x: i32,
     pub y: i32,
@@ -27,4 +27,10 @@ impl Debug for Point {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Point({}, {})", self.x, self.y)
     }
+}
+
+#[derive(PartialEq)]
+pub struct Segment {
+    pub start: Point,
+    pub end: Point,
 }
