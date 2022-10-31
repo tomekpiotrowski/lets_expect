@@ -63,7 +63,7 @@ jobs:
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
         with:
-          timeout_seconds: 30
+          timeout_seconds: 120
           max_attempts: 3
           command: cd lets_expect_core && cargo publish --token $CARGO_REGISTRY_TOKEN
       - name: Publish lets_expect_assertions
@@ -71,7 +71,7 @@ jobs:
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
         with:
-          timeout_seconds: 30
+          timeout_seconds: 120
           max_attempts: 3
           command: cd lets_expect_assertions && cargo publish --token $CARGO_REGISTRY_TOKEN
       - name: Publish lets_expect_macro
@@ -79,7 +79,7 @@ jobs:
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
         with:
-          timeout_seconds: 30
+          timeout_seconds: 120
           max_attempts: 3
           command: cd lets_expect_macro && cargo publish --token $CARGO_REGISTRY_TOKEN
       - name: Publish lets_expect
@@ -87,7 +87,7 @@ jobs:
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
         with:
-          timeout_seconds: 30
+          timeout_seconds: 120
           max_attempts: 3
           command: cargo publish --token $CARGO_REGISTRY_TOKEN
       - name: Release
