@@ -3,6 +3,7 @@ mod point;
 #[cfg(test)]
 mod tests {
     use crate::point::Point;
+    use crate::point::Segment;
     use lets_expect::*;
 
     lets_expect! {
@@ -16,8 +17,11 @@ mod tests {
             }
         }
 
-        expect(Point { x: 1, y: 2 }) {
-            to make(subject_result.x + subject_result.y) equal(3)
+        expect(Segment { start: Point { x: 1, y: 2 }, end: Point { x: 3, y: 4 } }) {
+            to pass_the_same_make_assertion_twice {
+                make(subject_result.start) equal(Point { x: 1, y: 2 }),
+                make(subject_result.start) equal(Point { x: 1, y: 2 })
+            }
         }
     }
 }
