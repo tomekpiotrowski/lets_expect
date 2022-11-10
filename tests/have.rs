@@ -4,7 +4,7 @@ mod point;
 mod tests {
     use crate::point::Point;
     use crate::point::Segment;
-    use lets_expect::*;
+    use lets_expect::lets_expect;
 
     lets_expect! {
         expect(segment) {

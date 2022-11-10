@@ -8,6 +8,14 @@
 
 Clean tests in Rust.
 
+```rust
+expect(a + 2) {
+    when(a = 2) {
+        to equal(4)
+    }
+}
+```
+
 ## Why do I need this? Isn't libtest already good enough?
 
 How often when you see a Rust test you think to yourself "wow, this is a really beautifully written test"? Not often, right?
@@ -19,15 +27,7 @@ It makes it easy to structure your code in a way that reflects it. Folks in othe
 [RSpec](https://relishapp.com/rspec) and [Jasmine](https://jasmine.github.io/).
 
 If you want beautiful, high-quality tests that are a pleasure to read and write you need something else. Using Rust's procedural macros `lets_expect` introduces
-a syntax that let's you clearly state **what** you're testing, under what **conditions** and what is the **expected result**:
-
-```rust
-expect(a + 2) {
-    when(a = 2) {
-        to equal(4)
-    }
-}
-```
+a syntax that let's you clearly state **what** you're testing, under what **conditions** and what is the **expected result**.
 
 The outcome is:
 * easy to read, DRY, TDD-friendly tests
@@ -60,7 +60,7 @@ expect(posts.create_post(title, category_id)) {
         }
     }
 
-    when(title = invalid_title; category_id = valid_category) { to be_err }
+    when(title = invalid_title, category_id = valid_category) { to be_err }
 }
 ```
 
@@ -127,11 +127,26 @@ lets_expect = "*"
 
 ## Guide
 
-### Introduction
+### How does Let's Expect work?
 
-Under the hood `lets_expect` generates a single classic test function for each `to` block. It names those tests based on assertions present in the test and
+Under the hood `lets_expect` generates a single classic test function for each `to` block. It names those tests automatically based on what you're testing and
 organizes those tests into modules. This means you can run those tests using `cargo test` and you can use all `cargo test` features. IDE extensions will
 also work as expected.
+
+`cargo test` output might look like this:
+
+```text
+running 5 tests
+test tests::expect_a_plus_b_plus_c::when_a_is_two::when_b_is_one_c_is_one::to_equal_4 ... ok
+test tests::expect_a_plus_b_plus_c::when_c_is_three::expect_two_plus_c_plus_ten::to_equal_fifteen ... ok
+test tests::expect_a_plus_b_plus_c::when_a_is_three_b_is_three_c_is_three::to_equal_nine ... ok
+test tests::expect_a_plus_b_plus_c::when_all_numbers_are_negative::to_equal_neg_six ... ok
+test tests::expect_array::when_array_is_one_two_three::to_equal_one_two_three ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+```
+
+### Where to put my tests?
 
 Let's Expect tests need to be placed inside of a `lets_expect!` macro, which in turn needs to be placed inside of a `tests` module:
 
@@ -151,7 +166,7 @@ mod tests {
 
 It might be a good idea to define a code snippet in your IDE to avoid having to type this piece of boilerplate every time.
 
-The examples below omit the macro for brevity.
+The examples here omit the macro for brevity.
 
 ### `expect` and `to`
 
@@ -175,7 +190,8 @@ expect({ 1 + 1 }) {
 }
 ```
 
-One `to` block generates a single test. If you want to generate multiple tests you can use multiple `to` blocks:
+One `to` block generates a single test. This means the subject will be executed once and then all the assertions inside that `to` block will be run.
+If you want to generate multiple tests you can use multiple `to` blocks:
 
 ```rust
 expect(files.create_file()) {
@@ -227,7 +243,7 @@ expect(sum) {
 
 ### `when`
 
-`when` sets a value of one or more variable for a given block. This keyword is this library's secret sauce. It allows you to define values of variables
+`when` sets a value of one or more variables for a given block. This keyword is this library's secret sauce. It allows you to define values of variables
 for multiples tests in a concise and readable way, without having to repeat it in every test.
 
 ```rust
@@ -239,7 +255,7 @@ expect(a + b + c) {
             to equal(10)
         }
 
-        when(a = 10; b = 10) {
+        when(a = 10, b = 10) {
             to equal(25)
         }
     }
@@ -251,7 +267,7 @@ You can use similar syntax as in `let` to define variables. The only difference 
 ```rust
 expect(a += 1) {
     when(mut a: i64 = 1) {
-        to change(a) { from(1), to(2) }
+        to change(a.clone()) { from(1), to(2) }
     }
 }
 ```
@@ -366,9 +382,9 @@ expect(Err(()) as Result<String, ()>) {
 }
 ```
 
-### Custom assertion
+### Custom assertions
 
-Let's Expect provides a way to define custom assertions. An assertion is a function that takes the references to the
+Let's Expect provides a way to define custom assertions. An assertion is a function that takes the reference to the
 subject and returns an [`AssertionResult`](../lets_expect_core/assertions/assertion_result/index.html).
 
 Here's two custom assertions:
@@ -444,16 +460,17 @@ And used like so:
 expect(a *= 5) {
     let mut a = 5;
 
-    to change(a) by_multiplying_by(5)
+    to change(a.clone()) by_multiplying_by(5)
 }
 ```
 
 ### `before` and `after`
 
 The contents of the `before` blocks are executed before the subject is evaluated, but after the `let` bindings are executed. The contents of the `after` blocks are executed
-after the subject is evaluated and the assertions are verified. `after` block is guaranteed to be executed even if the subject evaluation or the assertions fail.
+after the subject is evaluated and the assertions are verified.
 
 `before` blocks are run in the order they are defined. Parent `before` blocks being run before child `before` blocks. The reverse is true for `after` blocks.
+`after` blocks are guaranteed to run even if assertions fail. They however will not run if the let statements, before blocks, subject evaluation or assertions panic.
 
 ```rust
 let mut messages: Vec<&str> = Vec::new();
@@ -495,6 +512,37 @@ expect(2.1) {
    to be_less_or_equal_to(2.1)
 }
 ```
+
+### Iterators
+
+```rust
+expect(vec![1, 2, 3]) {
+   to have(mut iter()) all(be_greater_than(0))
+   to have(mut iter()) any(be_greater_than(2))
+}
+```
+
+### Mutable variables and references
+
+For some tests you may need to make the tested value mutable or you may need to pass a mutable reference to the assertions. In `expect`, `have` and `make` you can
+use the `mut` keyword to do that.
+
+```rust
+expect(mut vec![1, 2, 3]) { // make the subject mutable
+    to have(remove(1)) equal(2)
+}
+
+expect(mut vec.iter()) { // pass a mutable reference to the iterator to the assertion
+    let vec = vec![1, 2, 3];
+    to all(be_greater_than(0))
+}
+
+expect(vec![1, 2, 3]) {
+    to have(mut iter()) all(be_greater_than(0)) // pass a mutable reference to the iterator to the assertion
+}
+```
+
+`let` and `when` statements also support `mut`.
 
 ### Stories
 
@@ -566,7 +614,12 @@ The full list of assertions is available in the [assertions module](../lets_expe
 ## Examples
 
 Let's expect repository contains tests that might be useful as examples of using the library.
-You can find them [here](https://github.com/tomekpiotrowski/lets_expect/tree/main/lets_expect/tests).
+You can find them [here](https://github.com/tomekpiotrowski/lets_expect/tree/main/tests).
+
+## Debugging
+
+If you're having trouble with your tests you can use [cargo-expand](https://github.com/dtolnay/cargo-expand) to see what code is generated by Let's Expect.
+The generated code is not always easy to read and is not guaranteed to be stable between versions. Still it can be useful for debugging.
 
 ## License
 

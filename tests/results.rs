@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use lets_expect::*;
+    use lets_expect::lets_expect;
 
     lets_expect! {
         expect(Ok(1) as Result<i32, String>) {

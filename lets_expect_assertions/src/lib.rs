@@ -3,6 +3,7 @@ pub mod assertions;
 pub mod bool;
 pub mod change;
 pub mod equality;
+pub mod iterator;
 pub mod match_pattern;
 pub mod option;
 pub mod panic;

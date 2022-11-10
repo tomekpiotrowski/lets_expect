@@ -1,14 +1,14 @@
-use proc_macro2::{Ident, TokenStream};
+use proc_macro2::TokenStream;
 
-use super::{story::Story, runtime::Runtime};
+use super::{keyword, runtime::Runtime, story::Story};
 
 pub struct StoryBlock {
-    pub keyword: Ident,
-    pub story: Story
+    pub keyword: keyword::story,
+    pub story: Story,
 }
 
 impl StoryBlock {
-    pub fn new(keyword: Ident, story: Story) -> Self {
+    pub fn new(keyword: keyword::story, story: Story) -> Self {
         StoryBlock { keyword, story }
     }
 

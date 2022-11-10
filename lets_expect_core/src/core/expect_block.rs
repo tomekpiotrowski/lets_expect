@@ -1,13 +1,13 @@
-use proc_macro2::{Ident, TokenStream};
-use super::{expect::Expect, runtime::Runtime};
+use super::{expect::Expect, keyword, runtime::Runtime};
+use proc_macro2::TokenStream;
 
 pub struct ExpectBlock {
-    keyword: Ident,
-    expect: Expect
+    keyword: keyword::expect,
+    expect: Expect,
 }
 
 impl ExpectBlock {
-    pub fn new(keyword: Ident, expect: Expect) -> Self {
+    pub fn new(keyword: keyword::expect, expect: Expect) -> Self {
         Self { keyword, expect }
     }
 

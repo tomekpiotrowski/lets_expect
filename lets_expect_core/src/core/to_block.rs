@@ -1,13 +1,13 @@
+use super::{keyword, runtime::Runtime, to::To};
 use proc_macro2::{Ident, TokenStream};
-use super::{to::To, runtime::Runtime};
 
 pub struct ToBlock {
-    pub keyword: Ident,
-    pub to: To
+    pub keyword: keyword::to,
+    pub to: To,
 }
 
 impl ToBlock {
-    pub fn new(keyword: Ident, to: To) -> Self {
+    pub fn new(keyword: keyword::to, to: To) -> Self {
         Self { keyword, to }
     }
 

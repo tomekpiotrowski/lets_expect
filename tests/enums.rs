@@ -7,7 +7,7 @@ enum Response {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use lets_expect::*;
+    use lets_expect::lets_expect;
 
     lets_expect! {
         expect(Response::UserCreated) {

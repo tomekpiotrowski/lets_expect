@@ -4,7 +4,7 @@ use super::mode::Mode;
 
 #[derive(Debug, Default)]
 pub struct Runtime {
-    pub subject: Option<Expr>,
+    pub subject: Option<(bool, Expr)>,
     pub lets: Vec<Local>,
     pub befores: Vec<Block>,
     pub afters: Vec<Block>,
@@ -14,7 +14,7 @@ pub struct Runtime {
 impl Runtime {
     pub fn extend(
         &self,
-        subject: Option<Expr>,
+        subject: Option<(bool, Expr)>,
         lets: &[Local],
         befores: &[Block],
         afters: &[Block],
