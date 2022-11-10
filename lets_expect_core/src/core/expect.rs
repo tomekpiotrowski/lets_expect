@@ -21,17 +21,25 @@ impl Parse for Expect {
         parenthesized!(content in input);
 
         let mut mutable = false;
-        let mut subject_identifier = String::new();
 
         if content.peek(Token![mut]) {
             content.parse::<Token![mut]>()?;
-            subject_identifier = "mut_".to_string();
             mutable = true;
         }
 
         let subject = content.parse::<Expr>()?;
-        subject_identifier.push_str(&expr_to_ident(&subject));
-        let subject_identifier = Ident::new(&subject_identifier, subject.span());
+
+        let subject_identifier = if input.peek(Token![as]) {
+            input.parse::<Token![as]>()?;
+            input.parse::<Ident>()?
+        } else {
+            let mut subject_identifier = String::new();
+            if mutable {
+                subject_identifier = "mut_".to_string();
+            }
+            subject_identifier.push_str(&expr_to_ident(&subject));
+            Ident::new(&subject_identifier, subject.span())
+        };
 
         let content;
         braced!(content in input);

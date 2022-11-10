@@ -74,6 +74,14 @@ impl Parse for When {
             )
         };
 
+        let identifier = if input.peek(Token![as]) {
+            input.parse::<Token![as]>()?;
+            let ident = input.parse::<Ident>()?;
+            Ident::new(&format!("{}{}", WHEN_IDENT_PREFIX, ident), ident.span())
+        } else {
+            identifier
+        };
+
         let content;
         braced!(content in input);
         let context = content.parse::<Context>()?;

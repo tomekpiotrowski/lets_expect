@@ -883,6 +883,38 @@
 //!
 //! `let` and `when` statements also support `mut`.
 //!
+//! ## Explicit identifiers for `expect` and `when`
+//!
+//! Because Let's Expect uses standard Rust tests under the hood it has to come up with a unique identifier for each test. To make those identifiers
+//! readable Let's Expect uses the expressions in `expect` and `when` to generate the name. This works well for simple expressions but can get a bit
+//! messy for more complex expressions. Sometimes it can also result in duplicated names. To solve those issues you can use the `as` keyword to give
+//! the test an explicit name:
+//!
+//! ```
+//! # mod tests {
+//! # use lets_expect::*;
+//! # lets_expect! { #method
+//! expect(a + b + c) as sum_of_three {
+//!     when(a = 1, b = 1, c = 1) as everything_is_one {
+//!         to equal(3)
+//!     }
+//! }
+//! # }
+//! # }
+//! # tests::expect_sum_of_three::when_everything_is_one::to_equal_three().unwrap();
+//! ```
+//!
+//! This will create a test_named:
+//! ```text
+//! expect_sum_of_three::when_everything_is_one::to_equal_three
+//! ```
+//!
+//! instead of
+//!
+//! ```text
+//! expect_a_plus_b_plus_c::when_a_is_one_b_is_one_c_is_one::to_equal_three
+//! ```
+//!
 //! ## Stories
 //!
 //! Let's Expect promotes tests that only test one piece of code at a time. Up until this point all the test we've seen define a subject, run that subject and
