@@ -7,6 +7,10 @@ mod tests {
             let empty_vec: Vec<String> = vec![];
         }
 
+        expect(vec![1, 2, 3, 4, 5]) as vec_one_to_five {
+            to have(contains(&4)) be_true
+        }
+
         expect(vec![1, 2, 3]) {
             to contain_expected_values {
                 have(len()) equal(3)

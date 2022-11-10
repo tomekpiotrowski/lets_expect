@@ -16,7 +16,7 @@ mod tests {
                 }
             }
 
-            when(a = 3, b = 3, c = 3) {
+            when(a = 3, b = 3, c = 3) as everything_is_three {
                 to equal(9)
             }
 
