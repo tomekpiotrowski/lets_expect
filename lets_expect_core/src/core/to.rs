@@ -152,6 +152,8 @@ impl To {
             }
         }).collect::<Vec<_>>();
 
+        let whens = &runtime.whens;
+
         quote_spanned! { identifier.span() =>
             #(#before_subject)*
 
@@ -163,7 +165,7 @@ impl To {
             let mut expectation_results: Vec<ExecutedExpectation> = Vec::new();
             #(#expectations)*
 
-            ExecutedTestCase::new(#subject_label.to_string(), expectation_results)
+            ExecutedTestCase::new(#subject_label.to_string(), vec![#(#whens),*], expectation_results)
         }
     }
 }

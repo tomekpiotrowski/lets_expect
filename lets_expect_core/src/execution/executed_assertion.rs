@@ -1,6 +1,6 @@
-use colored::Colorize;
-use crate::assertions::assertion_result::AssertionResult;
 use super::prepend::prepend;
+use crate::assertions::assertion_result::AssertionResult;
+use colored::Colorize;
 use std::fmt::Debug;
 
 pub struct ExecutedAssertion {
@@ -19,13 +19,19 @@ impl ExecutedAssertion {
 
     pub fn pretty_print(&self) -> Vec<String> {
         match &self.result {
-            Ok(_) => vec![format!("{} {}", "✓", self.assertion).green().bold().to_string()],
+            Ok(_) => vec![format!("{} {}", "✓", self.assertion)
+                .green()
+                .bold()
+                .to_string()],
             Err(_) => {
-                let mut lines = vec![format!("{} {}", "✗", self.assertion).red().bold().to_string()];
+                let mut lines = vec![format!("{} {}", "✗", self.assertion)
+                    .red()
+                    .bold()
+                    .to_string()];
                 lines.extend(prepend(&self.result.as_ref().unwrap_err().message, "  "));
 
                 lines
-            },
+            }
         }
     }
 }
