@@ -9,6 +9,7 @@ pub struct Runtime {
     pub befores: Vec<Block>,
     pub afters: Vec<Block>,
     pub mode: Option<Mode>,
+    pub whens: Vec<String>,
 }
 
 impl Runtime {
@@ -52,6 +53,21 @@ impl Runtime {
             befores: new_befores,
             afters: new_afters,
             mode: new_mode,
+            whens: self.whens.clone(),
+        }
+    }
+
+    pub fn add_when(&self, when: String) -> Runtime {
+        let mut new_whens = self.whens.clone();
+        new_whens.push(when);
+
+        Runtime {
+            subject: self.subject.clone(),
+            lets: self.lets.clone(),
+            befores: self.befores.clone(),
+            afters: self.afters.clone(),
+            mode: self.mode,
+            whens: new_whens,
         }
     }
 }

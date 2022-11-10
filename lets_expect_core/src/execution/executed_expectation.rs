@@ -1,5 +1,5 @@
+use super::{executed_assertion::ExecutedAssertion, prepend::prepend};
 use colored::Colorize;
-use super::executed_assertion::ExecutedAssertion;
 
 #[derive(Debug)]
 pub struct ExecutedExpectation {
@@ -16,13 +16,21 @@ impl ExecutedExpectation {
         self.assertions.iter().any(|assertion| assertion.failed())
     }
 
-    pub fn pretty_print(&self) -> String {
-        let assertions = self.assertions.iter().flat_map(ExecutedAssertion::pretty_print).collect::<Vec<_>>();
+    pub fn pretty_print(&self) -> Vec<String> {
+        let assertions = self
+            .assertions
+            .iter()
+            .flat_map(ExecutedAssertion::pretty_print)
+            .collect::<Vec<_>>();
 
         if let Some(call) = self.call.as_ref() {
-            format!("{} {}", call.0.cyan(), call.1.yellow().bold()) + "\n      " + &assertions.join("\n      ")
+            let call = format!("{} {}", call.0.cyan(), call.1.yellow().bold());
+            let mut assertions = prepend(&assertions, "  ");
+            let mut merged = vec![call];
+            merged.append(&mut assertions);
+            merged
         } else {
-            assertions.join("\n      ")
+            assertions
         }
     }
 }

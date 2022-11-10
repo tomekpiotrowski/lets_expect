@@ -56,12 +56,13 @@ impl WhenLet {
 pub struct When {
     context: Context,
     identifier: Ident,
+    string: String,
     lets: Vec<Local>,
 }
 
 impl Parse for When {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        let (lets, identifier) = if input.peek(Paren) {
+        let (lets, identifier, string) = if input.peek(Paren) {
             parse_lets_in_parentheses(input)?
         } else {
             let identifier = input.parse::<Ident>()?;
@@ -71,6 +72,7 @@ impl Parse for When {
                     &format!("{}{}", WHEN_IDENT_PREFIX, identifier),
                     identifier.span(),
                 ),
+                identifier.to_string(),
             )
         };
 
@@ -89,6 +91,7 @@ impl Parse for When {
         Ok(When {
             lets,
             identifier,
+            string,
             context,
         })
     }
@@ -96,10 +99,11 @@ impl Parse for When {
 
 fn parse_lets_in_parentheses(
     input: &syn::parse::ParseBuffer,
-) -> Result<(Vec<Local>, Ident), syn::Error> {
+) -> Result<(Vec<Local>, Ident, String), syn::Error> {
     let content;
     parenthesized!(content in input);
 
+    let string = content.to_string();
     let when_lets: Punctuated<WhenLet, Comma> = Punctuated::parse_separated_nonempty(&content)?;
     let lets: Vec<Local> = when_lets.iter().map(WhenLet::to_local).collect();
 
@@ -118,12 +122,15 @@ fn parse_lets_in_parentheses(
             .join("_")
             .as_str();
     let identifier = Ident::new(name.as_str(), input.span());
-    Ok((lets, identifier))
+    Ok((lets, identifier, string))
 }
 
 impl When {
     pub fn to_tokens(&self, keyword: &keyword::when, runtime: &Runtime) -> TokenStream {
-        let context = self.context.to_tokens(&keyword.span(), runtime, &self.lets);
+        let runtime = runtime.add_when(self.string.clone());
+        let context = self
+            .context
+            .to_tokens(&keyword.span(), &runtime, &self.lets);
         create_module(&keyword.span(), &self.identifier, &context)
     }
 }
