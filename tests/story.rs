@@ -1,11 +1,11 @@
 struct User {
     name: String,
-    password: String
+    password: String,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct AuthenticationError {
-    message: String
+    message: String,
 }
 
 struct Page {
@@ -23,11 +23,12 @@ impl Page {
 
             Ok(())
         } else {
-            Err(AuthenticationError { message: "Invalid credentials".to_string() })
+            Err(AuthenticationError {
+                message: "Invalid credentials".to_string(),
+            })
         }
     }
 }
-
 
 #[cfg(test)]
 mod tests {

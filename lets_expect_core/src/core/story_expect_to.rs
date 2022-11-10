@@ -1,22 +1,24 @@
 use proc_macro2::TokenStream;
 use quote::quote_spanned;
-use syn::{parse::Parse, Expr, Ident};
+use syn::{parse::Parse, spanned::Spanned, Expr, Token};
 
-use crate::core::to::To;
+use crate::core::{keyword, to::To};
 
 use super::{runtime::Runtime, to_block::ToBlock};
 
 pub struct StoryExpectTo {
-    keyword: Ident,
+    keyword: keyword::expect,
+    mutable: bool,
     subject: Expr,
     to: ToBlock,
 }
 
 impl StoryExpectTo {
-    pub fn new(keyword: Ident, subject: Expr, to: ToBlock) -> Self {
+    pub fn new(keyword: keyword::expect, subject: Expr, mutable: bool, to: ToBlock) -> Self {
         StoryExpectTo {
             keyword,
             subject,
+            mutable,
             to,
         }
     }
@@ -24,34 +26,33 @@ impl StoryExpectTo {
 
 impl Parse for StoryExpectTo {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        let keyword = input.parse::<Ident>()?;
-
-        if keyword != "expect" {
-            return Err(syn::Error::new(keyword.span(), "Expected 'expect' keyword"));
-        }
+        let keyword = input.parse::<keyword::expect>()?;
 
         let content;
         syn::parenthesized!(content in input);
 
+        let mut mutable = false;
+
+        if content.peek(Token![mut]) {
+            content.parse::<Token![mut]>()?;
+            mutable = true;
+        }
+
         let subject = content.parse::<Expr>()?;
 
-        let to_keyword = input.parse::<Ident>()?;
-
-        if to_keyword != "to" {
-            return Err(syn::Error::new(to_keyword.span(), "Expected 'to' keyword"));
-        }
+        let to_keyword = input.parse::<keyword::to>()?;
 
         let to = input.parse::<To>()?;
         let to = ToBlock::new(to_keyword, to);
 
-        Ok(StoryExpectTo::new(keyword, subject, to))
+        Ok(StoryExpectTo::new(keyword, subject, mutable, to))
     }
 }
 
 impl StoryExpectTo {
     pub fn to_tokens(&self, runtime: &Runtime) -> TokenStream {
         let runtime = runtime.extend(
-            Some(self.subject.clone()),
+            Some((self.mutable, self.subject.clone())),
             &[],
             &Vec::new(),
             &Vec::new(),

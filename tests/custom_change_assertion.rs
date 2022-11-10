@@ -25,7 +25,7 @@ mod tests {
         expect(a *= 5) {
             let mut a = 5;
 
-            to change(a) by_multiplying_by(5)
+            to change(a.clone()) by_multiplying_by(5)
         }
     }
 }

@@ -1,14 +1,16 @@
-use syn::{Block, Ident};
+use syn::Block;
+
+use super::keyword;
 
 pub struct BeforeBlock {
-    pub identifier: Ident,
+    pub keyword: keyword::before,
     pub before: Block,
 }
 
 impl BeforeBlock {
-    pub fn new(ident: Ident, block: Block) -> BeforeBlock {
+    pub fn new(keyword: keyword::before, block: Block) -> BeforeBlock {
         BeforeBlock {
-            identifier: ident,
+            keyword,
             before: block,
         }
     }

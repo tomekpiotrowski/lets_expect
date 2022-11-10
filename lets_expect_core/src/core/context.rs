@@ -1,7 +1,7 @@
 use super::{
     after_block::AfterBlock, before_block::BeforeBlock, create_test::create_test, expect::Expect,
-    expect_block::ExpectBlock, mode::Mode, runtime::Runtime, story::Story, story_block::StoryBlock,
-    to::To, to_block::ToBlock, when::When, when_block::WhenBlock,
+    expect_block::ExpectBlock, keyword, mode::Mode, runtime::Runtime, story::Story,
+    story_block::StoryBlock, to::To, to_block::ToBlock, when::When, when_block::WhenBlock,
 };
 use proc_macro2::{Span, TokenStream};
 use quote::quote_spanned;
@@ -56,45 +56,34 @@ impl Parse for Context {
         while next.peek(Ident::peek_any) {
             if next.peek(Token![let]) {
                 handle_let(&mut lets, input)?;
+            } else if next.peek(keyword::before) {
+                let keyword = input.parse::<keyword::before>()?;
+                let before = handle_before(keyword, input)?;
+                befores.push(before);
+            } else if next.peek(keyword::after) {
+                let keyword = input.parse::<keyword::after>()?;
+                let after = handle_after(keyword, input)?;
+                afters.push(after);
+            } else if next.peek(keyword::to) {
+                let keyword = input.parse::<keyword::to>()?;
+                let to = handle_to(keyword, input)?;
+                tos.push(to);
+            } else if next.peek(keyword::when) {
+                let keyword = input.parse::<keyword::when>()?;
+                let when = handle_when(keyword, input)?;
+                whens.push(when);
+            } else if next.peek(keyword::expect) {
+                let keyword = input.parse::<keyword::expect>()?;
+                let expect = handle_expect(keyword, input)?;
+                expects.push(expect);
+            } else if next.peek(keyword::story) {
+                let keyword = input.parse::<keyword::story>()?;
+                let story = handle_story(keyword, input)?;
+                stories.push(story);
             } else {
-                let ident = input.call(Ident::parse_any)?;
-
-                match ident.to_string().as_str() {
-                    "before" => {
-                        let before = handle_before(ident, input)?;
-                        befores.push(before);
-                    }
-                    "after" => {
-                        let after = handle_after(ident, input)?;
-                        afters.push(after);
-                    }
-                    "expect" => {
-                        let expect = handle_expect(ident, input)?;
-                        expects.push(expect);
-                    }
-                    "to" => {
-                        let to = handle_to(ident, input)?;
-                        tos.push(to);
-                    }
-                    "when" => {
-                        let when = handle_when(ident, input)?;
-                        whens.push(when);
-                    }
-                    "story" => {
-                        let story = handle_story(ident, input)?;
-                        stories.push(story);
-                    }
-                    _ => {
-                        return Err(syn::Error::new(
-                            ident.span(),
-                            format!(
-                                "Unexpected token `{}`. Expected `subject`, `to`, `let` or `when`",
-                                ident
-                            ),
-                        ))
-                    }
-                }
+                return Err(next.error());
             }
+
             next = input.lookahead1();
         }
 
@@ -111,29 +100,29 @@ impl Parse for Context {
     }
 }
 
-fn handle_before(ident: Ident, input: ParseStream) -> syn::Result<BeforeBlock> {
+fn handle_before(keyword: keyword::before, input: ParseStream) -> syn::Result<BeforeBlock> {
     let block = input.parse::<Block>()?;
-    Ok(BeforeBlock::new(ident, block))
+    Ok(BeforeBlock::new(keyword, block))
 }
 
-fn handle_after(ident: Ident, input: ParseStream) -> syn::Result<AfterBlock> {
+fn handle_after(keyword: keyword::after, input: ParseStream) -> syn::Result<AfterBlock> {
     let block = input.parse::<Block>()?;
-    Ok(AfterBlock::new(ident, block))
+    Ok(AfterBlock::new(keyword, block))
 }
 
-fn handle_expect(ident: Ident, input: &ParseBuffer) -> syn::Result<ExpectBlock> {
+fn handle_expect(keyword: keyword::expect, input: &ParseBuffer) -> syn::Result<ExpectBlock> {
     let expect = input.parse::<Expect>()?;
-    Ok(ExpectBlock::new(ident, expect))
+    Ok(ExpectBlock::new(keyword, expect))
 }
 
-fn handle_when(keyword: Ident, input: &ParseBuffer) -> syn::Result<WhenBlock> {
+fn handle_when(keyword: keyword::when, input: &ParseBuffer) -> syn::Result<WhenBlock> {
     let when = input.parse::<When>()?;
     Ok(WhenBlock::new(keyword, when))
 }
 
-fn handle_to(ident: Ident, input: &ParseBuffer) -> syn::Result<ToBlock> {
+fn handle_to(keyword: keyword::to, input: &ParseBuffer) -> syn::Result<ToBlock> {
     let to = input.parse::<To>()?;
-    Ok(ToBlock::new(ident, to))
+    Ok(ToBlock::new(keyword, to))
 }
 
 fn handle_let(lets: &mut Vec<Local>, input: &ParseBuffer) -> syn::Result<()> {
@@ -148,9 +137,9 @@ fn handle_let(lets: &mut Vec<Local>, input: &ParseBuffer) -> syn::Result<()> {
     Ok(())
 }
 
-fn handle_story(ident: Ident, input: &ParseBuffer) -> Result<StoryBlock, Error> {
+fn handle_story(keyword: keyword::story, input: &ParseBuffer) -> Result<StoryBlock, Error> {
     let story = input.parse::<Story>()?;
-    Ok(StoryBlock::new(ident, story))
+    Ok(StoryBlock::new(keyword, story))
 }
 
 impl Context {

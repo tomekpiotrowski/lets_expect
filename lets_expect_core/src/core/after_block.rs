@@ -1,14 +1,16 @@
-use syn::{Block, Ident};
+use syn::Block;
+
+use super::keyword;
 
 pub struct AfterBlock {
-    pub identifier: Ident,
+    pub keyword: keyword::after,
     pub after: Block,
 }
 
 impl AfterBlock {
-    pub fn new(ident: Ident, block: Block) -> AfterBlock {
+    pub fn new(keyword: keyword::after, block: Block) -> AfterBlock {
         AfterBlock {
-            identifier: ident,
+            keyword,
             after: block,
         }
     }

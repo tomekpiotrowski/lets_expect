@@ -1,13 +1,13 @@
-use proc_macro2::{Ident, TokenStream};
-use super::{when::When, runtime::Runtime};
+use super::{keyword, runtime::Runtime, when::When};
+use proc_macro2::TokenStream;
 
 pub struct WhenBlock {
-    keyword: Ident,
-    when: When
+    keyword: keyword::when,
+    when: When,
 }
 
 impl WhenBlock {
-    pub fn new(keyword: Ident, when: When) -> Self {
+    pub fn new(keyword: keyword::when, when: When) -> Self {
         Self { keyword, when }
     }
 

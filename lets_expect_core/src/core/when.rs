@@ -1,11 +1,13 @@
 use crate::core::to_ident::local_to_ident;
 use proc_macro2::{Ident, Span, TokenStream};
 use syn::punctuated::Punctuated;
+use syn::spanned::Spanned;
 use syn::token::{Comma, Paren};
 use syn::{braced, parenthesized, parse::Parse};
 
 use super::context::Context;
 use super::create_module::create_module;
+use super::keyword;
 use super::runtime::Runtime;
 use syn::{Attribute, Expr, Local, Pat, Type};
 use syn::{PatType, Token};
@@ -112,7 +114,7 @@ fn parse_lets_in_parentheses(
 }
 
 impl When {
-    pub fn to_tokens(&self, keyword: &Ident, runtime: &Runtime) -> TokenStream {
+    pub fn to_tokens(&self, keyword: &keyword::when, runtime: &Runtime) -> TokenStream {
         let context = self.context.to_tokens(&keyword.span(), runtime, &self.lets);
         create_module(&keyword.span(), &self.identifier, &context)
     }

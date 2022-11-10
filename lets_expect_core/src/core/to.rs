@@ -1,10 +1,12 @@
 use proc_macro2::TokenStream;
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
+use syn::spanned::Spanned;
 use syn::token::{Brace, Comma};
 use syn::{braced, Ident};
 
 use super::expectation::Expectation;
+use super::mutable_token::mutable_token;
 use super::runtime::Runtime;
 use quote::{quote_spanned, ToTokens};
 
@@ -83,7 +85,7 @@ impl To {
                     expectation.clone(),
                     expectation.before_subject_tokens(&prefix),
                     expectation.after_subject_tokens(&prefix),
-                    expectation.assertion_tokens(&prefix),
+                    expectation.assertion_tokens(subject.0, &prefix),
                 )
             })
             .collect();
@@ -97,22 +99,23 @@ impl To {
             .map(|(_, _, after_subject, _)| after_subject)
             .collect::<Vec<_>>();
 
-        let subject_label = subject.to_token_stream().to_string();
-
+        let subject_label = subject.1.to_token_stream().to_string();
+        let mutable_token = mutable_token(subject.0, &subject.1.span());
         let subject_may_panic = self
             .expectations()
             .iter()
             .any(Expectation::subject_may_panic);
+        let subject = &subject.1;
 
-        let subject_result = if subject_may_panic {
+        let subject = if subject_may_panic {
             quote_spanned! { identifier.span() =>
-                let subject_result = std::panic::catch_unwind(|| {
+                let subject = std::panic::catch_unwind(|| {
                     #subject
                 });
             }
         } else {
             quote_spanned! { identifier.span() =>
-                let subject_result = { #subject };
+                let #mutable_token subject = #subject;
             }
         };
 
@@ -153,7 +156,7 @@ impl To {
             #(#before_subject)*
 
             #[allow(unused_variables)]
-            #subject_result
+            #subject
 
             #(#after_subject)*
 

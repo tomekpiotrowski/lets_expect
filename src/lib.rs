@@ -1,18 +1,5 @@
 //! Clean tests in Rust.
 //!
-//! # Why do I need this? Isn't libtest already good enough?
-//!
-//! How often when you see a Rust test you think to yourself "wow, this is a really beautifully written test"? Not often, right?
-//! Classic Rust tests do not provide any structure beyond the test function itself. This often results in a lot of boilerplate code, ad-hoc test structure and overall
-//! poor quality.
-//!
-//! Tests are about verifying that a given piece of code run under certain conditions works as expected. A good testing framework embraces this way of thinking.
-//! It makes it easy to structure your code in a way that reflects it. Folks in other communities have been doing this for a long time with tools like
-//! [RSpec](https://relishapp.com/rspec) and [Jasmine](https://jasmine.github.io/).
-//!
-//! If you want beautiful, high-quality tests that are a pleasure to read and write you need something else. Using Rust's procedural macros `lets_expect` introduces
-//! a syntax that let's you clearly state **what** you're testing, under what **conditions** and what is the **expected result**:
-//!
 //! ```
 //! # mod tests {
 //! # use lets_expect::lets_expect;
@@ -26,6 +13,19 @@
 //! # }
 //! # tests::expect_a_plus_two::when_a_is_two::to_equal_four().unwrap();
 //! ```
+//!
+//! # Why do I need this? Isn't libtest already good enough?
+//!
+//! How often when you see a Rust test you think to yourself "wow, this is a really beautifully written test"? Not often, right?
+//! Classic Rust tests do not provide any structure beyond the test function itself. This often results in a lot of boilerplate code, ad-hoc test structure and overall
+//! poor quality.
+//!
+//! Tests are about verifying that a given piece of code run under certain conditions works as expected. A good testing framework embraces this way of thinking.
+//! It makes it easy to structure your code in a way that reflects it. Folks in other communities have been doing this for a long time with tools like
+//! [RSpec](https://relishapp.com/rspec) and [Jasmine](https://jasmine.github.io/).
+//!
+//! If you want beautiful, high-quality tests that are a pleasure to read and write you need something else. Using Rust's procedural macros `lets_expect` introduces
+//! a syntax that let's you clearly state **what** you're testing, under what **conditions** and what is the **expected result**.
 //!
 //! The outcome is:
 //! * easy to read, DRY, TDD-friendly tests
@@ -201,11 +201,26 @@
 //!
 //! # Guide
 //!
-//! ## Introduction
+//! ## How does Let's Expect work?
 //!
-//! Under the hood `lets_expect` generates a single classic test function for each `to` block. It names those tests based on assertions present in the test and
+//! Under the hood `lets_expect` generates a single classic test function for each `to` block. It names those tests automatically based on what you're testing and
 //! organizes those tests into modules. This means you can run those tests using `cargo test` and you can use all `cargo test` features. IDE extensions will
 //! also work as expected.
+//!
+//! `cargo test` output might look like this:
+//!
+//! ```text
+//! running 5 tests
+//! test tests::expect_a_plus_b_plus_c::when_a_is_two::when_b_is_one_c_is_one::to_equal_4 ... ok
+//! test tests::expect_a_plus_b_plus_c::when_c_is_three::expect_two_plus_c_plus_ten::to_equal_fifteen ... ok
+//! test tests::expect_a_plus_b_plus_c::when_a_is_three_b_is_three_c_is_three::to_equal_nine ... ok
+//! test tests::expect_a_plus_b_plus_c::when_all_numbers_are_negative::to_equal_neg_six ... ok
+//! test tests::expect_array::when_array_is_one_two_three::to_equal_one_two_three ... ok
+//!
+//! test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+//! ```
+//!
+//! ## Where to put my tests?
 //!
 //! Let's Expect tests need to be placed inside of a `lets_expect!` macro, which in turn needs to be placed inside of a `tests` module:
 //!
@@ -225,7 +240,7 @@
 //!
 //! It might be a good idea to define a code snippet in your IDE to avoid having to type this piece of boilerplate every time.
 //!
-//! The examples below omit the macro for brevity.
+//! The examples here omit the macro for brevity.
 //!
 //! ## `expect` and `to`
 //!
@@ -261,7 +276,8 @@
 //! # tests::expect_one_plus_one::to_be_actually_2().unwrap();
 //! ```
 //!
-//! One `to` block generates a single test. If you want to generate multiple tests you can use multiple `to` blocks:
+//! One `to` block generates a single test. This means the subject will be executed once and then all the assertions inside that `to` block will be run.
+//! If you want to generate multiple tests you can use multiple `to` blocks:
 //!
 //! ```
 //! # mod tests {
@@ -355,7 +371,7 @@
 //!
 //! ## `when`
 //!
-//! `when` sets a value of one or more variable for a given block. This keyword is this library's secret sauce. It allows you to define values of variables
+//! `when` sets a value of one or more variables for a given block. This keyword is this library's secret sauce. It allows you to define values of variables
 //! for multiples tests in a concise and readable way, without having to repeat it in every test.
 //!
 //! ```
@@ -389,12 +405,12 @@
 //! # lets_expect! { #method
 //! expect(a += 1) {
 //!     when(mut a: i64 = 1) {
-//!         to change(a) { from(1), to(2) }
+//!         to change(a.clone()) { from(1), to(2) }
 //!     }
 //! }
 //! # }
 //! # }
-//! # tests::expect_a_add_equal_one::when_a_is_one::to_change_a_from_one().unwrap();
+//! # tests::expect_a_add_equal_one::when_a_is_one::to_change_a_clone_from_one().unwrap();
 //! ```
 //!
 //! You can also use `when` with an identifier. This will simply create a new context with the given identifier. No new variables are defined.
@@ -593,9 +609,9 @@
 //! # tests::expect_err__as_result::to_be_err().unwrap();
 //! ```
 //!
-//! ## Custom assertion
+//! ## Custom assertions
 //!
-//! Let's Expect provides a way to define custom assertions. An assertion is a function that takes the references to the
+//! Let's Expect provides a way to define custom assertions. An assertion is a function that takes the reference to the
 //! subject and returns an [`AssertionResult`](../lets_expect_core/assertions/assertion_result/index.html).
 //!
 //! Here's two custom assertions:
@@ -727,17 +743,17 @@
 //! expect(a *= 5) {
 //!     let mut a = 5;
 //!
-//!     to change(a) by_multiplying_by(5)
+//!     to change(a.clone()) by_multiplying_by(5)
 //! }
 //! # }
 //! # }
-//! # tests::expect_a_multiply_equal_five::to_change_a_by_multiplying_by_five().unwrap();
+//! # tests::expect_a_multiply_equal_five::to_change_a_clone_by_multiplying_by_five().unwrap();
 //! ```
 //!
 //! ## `before` and `after`
 //!
 //! The contents of the `before` blocks are executed before the subject is evaluated, but after the `let` bindings are executed. The contents of the `after` blocks are executed
-//! after the subject is evaluated and the assertions are verified. `after` block is guaranteed to be executed even if the subject evaluation or the assertions fail.
+//! after the subject is evaluated and the assertions are verified.
 //!
 //! `before` blocks are run in the order they are defined. Parent `before` blocks being run before child `before` blocks. The reverse is true for `after` blocks.
 //! `after` blocks are guaranteed to run even if assertions fail. They however will not run if the let statements, before blocks, subject evaluation or assertions panic.
@@ -820,6 +836,52 @@
 //! # tests::expect_two_point_ten::to_be_greater_than_two_point_zero().unwrap();
 //! # tests::expect_two_point_ten::to_be_less_or_equal_to_two_point_ten().unwrap();
 //! ```
+//!
+//! ## Iterators
+//!
+//! ```
+//! # mod tests {
+//! # use lets_expect::*;
+//! # lets_expect! { #method
+//! expect(vec![1, 2, 3]) {
+//!    to have(mut iter()) all(be_greater_than(0))
+//!    to have(mut iter()) any(be_greater_than(2))
+//! }
+//! # }
+//! # }
+//! # tests::expect_vec::to_have_mut_iter_all_be_greater_than_zero().unwrap();
+//! # tests::expect_vec::to_have_mut_iter_any_be_greater_than_two().unwrap();
+//! ```
+//!
+//! ## Mutable variables and references
+//!
+//! For some tests you may need to make the tested value mutable or you may need to pass a mutable reference to the assertions. In `expect`, `have` and `make` you can
+//! use the `mut` keyword to do that.
+//!
+//! ```
+//! # mod tests {
+//! # use lets_expect::*;
+//! # lets_expect! { #method
+//! expect(mut vec![1, 2, 3]) { // make the subject mutable
+//!     to have(remove(1)) equal(2)
+//! }
+//!
+//! expect(mut vec.iter()) { // pass a mutable reference to the iterator to the assertion
+//!     let vec = vec![1, 2, 3];
+//!     to all(be_greater_than(0))
+//! }
+//!
+//! expect(vec![1, 2, 3]) {
+//!     to have(mut iter()) all(be_greater_than(0)) // pass a mutable reference to the iterator to the assertion
+//! }
+//! # }
+//! # }
+//! # tests::expect_vec::to_have_mut_iter_all_be_greater_than_zero().unwrap();
+//! # tests::expect_mut_vec_iter::to_all_be_greater_than_zero().unwrap();
+//! # tests::expect_mut_vec::to_have_remove_one_equal_two().unwrap();
+//! ```
+//!
+//! `let` and `when` statements also support `mut`.
 //!
 //! ## Stories
 //!
@@ -942,7 +1004,12 @@
 //! # Examples
 //!
 //! Let's expect repository contains tests that might be useful as examples of using the library.
-//! You can find them [here](https://github.com/tomekpiotrowski/lets_expect/tree/main/lets_expect/tests).
+//! You can find them [here](https://github.com/tomekpiotrowski/lets_expect/tree/main/tests).
+//!
+//! # Debugging
+//!
+//! If you're having trouble with your tests you can use [cargo-expand](https://github.com/dtolnay/cargo-expand) to see what code is generated by Let's Expect.
+//! The generated code is not always easy to read and is not guaranteed to be stable between versions. Still it can be useful for debugging.
 //!
 //! # License
 //!
