@@ -5,6 +5,7 @@ use syn::{
     braced, parenthesized,
     parse::{Parse, ParseStream},
     spanned::Spanned,
+    token::Brace,
     Error, Expr, Token,
 };
 
@@ -41,9 +42,13 @@ impl Parse for Expect {
             Ident::new(&subject_identifier, subject.span())
         };
 
-        let content;
-        braced!(content in input);
-        let context = content.parse::<Context>()?;
+        let context = if input.peek(Brace) {
+            let content;
+            braced!(content in input);
+            content.parse::<Context>()?
+        } else {
+            Context::from_single_item(input)?
+        };
 
         Ok(Expect {
             context,

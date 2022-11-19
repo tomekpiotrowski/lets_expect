@@ -163,7 +163,7 @@ fn expr_dependencies(expr: &Expr) -> HashSet<Ident> {
             dependencies.extend(expr_dependencies(&r#if.cond));
             dependencies.extend(r#if.then_branch.stmts.iter().flat_map(stmt_dependencies));
             if let Some(else_branch) = &r#if.else_branch {
-                dependencies.extend(expr_dependencies(&*else_branch.1));
+                dependencies.extend(expr_dependencies(&else_branch.1));
             }
         }
         Expr::Match(match_) => {
