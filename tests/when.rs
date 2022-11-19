@@ -38,9 +38,7 @@ mod tests {
         }
 
         expect(array) {
-            when(array = [1, 2, 3]) {
-                to equal([1, 2, 3])
-            }
+            when(array = [1, 2, 3]) to equal([1, 2, 3])
         }
     }
 }

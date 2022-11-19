@@ -6,12 +6,12 @@ use super::{
 use proc_macro2::{Span, TokenStream};
 use quote::quote_spanned;
 use syn::{
-    ext::IdentExt,
     parse::{Parse, ParseBuffer, ParseStream},
     spanned::Spanned,
     Block, Error, Ident, Local, Stmt, Token,
 };
 
+#[derive(Default)]
 pub struct Context {
     lets: Vec<Local>,
     tos: Vec<ToBlock>,
@@ -28,20 +28,13 @@ pub struct Context {
 
 impl Parse for Context {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let mut mode = None;
-        let mut befores = Vec::new();
-        let mut afters = Vec::new();
-        let mut tos = Vec::new();
-        let mut lets = Vec::new();
-        let mut whens = Vec::new();
-        let mut expects = Vec::new();
-        let mut stories = Vec::new();
+        let mut context = Context::default();
 
         if input.peek(Token![#]) {
             input.parse::<Token![#]>()?;
             let mode_ident = input.parse::<Ident>()?;
 
-            mode = Some(match mode_ident.to_string().as_str() {
+            context.mode = Some(match mode_ident.to_string().as_str() {
                 "test" => Mode::Test,
                 "method" => Mode::PubMethod,
                 "method_async" => Mode::PubAsyncMethod,
@@ -51,53 +44,48 @@ impl Parse for Context {
             });
         }
 
-        let mut next = input.lookahead1();
-
-        while next.peek(Ident::peek_any) {
-            if next.peek(Token![let]) {
-                handle_let(&mut lets, input)?;
-            } else if next.peek(keyword::before) {
-                let keyword = input.parse::<keyword::before>()?;
-                let before = handle_before(keyword, input)?;
-                befores.push(before);
-            } else if next.peek(keyword::after) {
-                let keyword = input.parse::<keyword::after>()?;
-                let after = handle_after(keyword, input)?;
-                afters.push(after);
-            } else if next.peek(keyword::to) {
-                let keyword = input.parse::<keyword::to>()?;
-                let to = handle_to(keyword, input)?;
-                tos.push(to);
-            } else if next.peek(keyword::when) {
-                let keyword = input.parse::<keyword::when>()?;
-                let when = handle_when(keyword, input)?;
-                whens.push(when);
-            } else if next.peek(keyword::expect) {
-                let keyword = input.parse::<keyword::expect>()?;
-                let expect = handle_expect(keyword, input)?;
-                expects.push(expect);
-            } else if next.peek(keyword::story) {
-                let keyword = input.parse::<keyword::story>()?;
-                let story = handle_story(keyword, input)?;
-                stories.push(story);
-            } else {
-                return Err(next.error());
-            }
-
-            next = input.lookahead1();
+        while !input.is_empty() {
+            parse_single_context_item(input, &mut context)?;
         }
 
-        Ok(Context {
-            tos,
-            lets,
-            befores,
-            afters,
-            expects,
-            whens,
-            stories,
-            mode,
-        })
+        Ok(context)
     }
+}
+
+fn parse_single_context_item(input: &ParseBuffer, context: &mut Context) -> Result<(), Error> {
+    let next = input.lookahead1();
+
+    if next.peek(Token![let]) {
+        handle_let(&mut context.lets, input)?;
+    } else if next.peek(keyword::before) {
+        let keyword = input.parse::<keyword::before>()?;
+        let before = handle_before(keyword, input)?;
+        context.befores.push(before);
+    } else if next.peek(keyword::after) {
+        let keyword = input.parse::<keyword::after>()?;
+        let after = handle_after(keyword, input)?;
+        context.afters.push(after);
+    } else if next.peek(keyword::to) {
+        let keyword = input.parse::<keyword::to>()?;
+        let to = handle_to(keyword, input)?;
+        context.tos.push(to);
+    } else if next.peek(keyword::when) {
+        let keyword = input.parse::<keyword::when>()?;
+        let when = handle_when(keyword, input)?;
+        context.whens.push(when);
+    } else if next.peek(keyword::expect) {
+        let keyword = input.parse::<keyword::expect>()?;
+        let expect = handle_expect(keyword, input)?;
+        context.expects.push(expect);
+    } else if next.peek(keyword::story) {
+        let keyword = input.parse::<keyword::story>()?;
+        let story = handle_story(keyword, input)?;
+        context.stories.push(story);
+    } else {
+        return Err(next.error());
+    }
+
+    Ok(())
 }
 
 fn handle_before(keyword: keyword::before, input: ParseStream) -> syn::Result<BeforeBlock> {
@@ -143,6 +131,14 @@ fn handle_story(keyword: keyword::story, input: &ParseBuffer) -> Result<StoryBlo
 }
 
 impl Context {
+    pub fn from_single_item(input: ParseStream) -> syn::Result<Self> {
+        let mut context = Context::default();
+
+        parse_single_context_item(input, &mut context)?;
+
+        Ok(context)
+    }
+
     pub fn to_tokens(&self, span: &Span, runtime: &Runtime, extra_lets: &[Local]) -> TokenStream {
         let mut lets = self.lets.clone();
         lets.extend(extra_lets.to_vec());

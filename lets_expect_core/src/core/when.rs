@@ -2,7 +2,7 @@ use crate::core::to_ident::local_to_ident;
 use proc_macro2::{Ident, Span, TokenStream};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
-use syn::token::{Comma, Paren};
+use syn::token::{Brace, Comma, Paren};
 use syn::{braced, parenthesized, parse::Parse};
 
 use super::context::Context;
@@ -84,9 +84,13 @@ impl Parse for When {
             identifier
         };
 
-        let content;
-        braced!(content in input);
-        let context = content.parse::<Context>()?;
+        let context = if input.peek(Brace) {
+            let content;
+            braced!(content in input);
+            content.parse::<Context>()?
+        } else {
+            Context::from_single_item(input)?
+        };
 
         Ok(When {
             lets,

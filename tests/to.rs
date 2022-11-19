@@ -3,9 +3,7 @@ mod tests {
     use lets_expect::lets_expect;
 
     lets_expect! {
-        expect(2 + 2) {
-            to equal(4)
-        }
+        expect(2 + 2) to equal(4)
 
         expect(2 + 3) {
             to equal(5)

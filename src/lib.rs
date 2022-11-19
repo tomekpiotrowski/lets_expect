@@ -77,24 +77,20 @@
 //!     after { posts.clear() }
 //!
 //!     when(title = valid_title) {
-//!         when(category_id = valid_category) {
-//!             to create_a_post {
-//!                 be_ok,
-//!                 have(as_ref().unwrap().title) equal(valid_title),
-//!                 change(posts.len()) { from(1), to(2) }
-//!             }
+//!         when(category_id = valid_category) to create_a_post {
+//!             be_ok,
+//!             have(as_ref().unwrap().title) equal(valid_title),
+//!             change(posts.len()) { from(1), to(2) }
 //!         }
 //!
-//!         when(category_id = invalid_category) {
-//!             to return_an_error {
-//!                 be_err,
-//!                 have(as_ref().unwrap_err().message) equal("Invalid category"),
-//!                 not_change(posts.len())
-//!             }
+//!         when(category_id = invalid_category) to return_an_error {
+//!             be_err,
+//!             have(as_ref().unwrap_err().message) equal("Invalid category"),
+//!             not_change(posts.len())
 //!         }
 //!     }
 //!
-//!     when(title = invalid_title, category_id = valid_category) { to be_err }
+//!     when(title = invalid_title, category_id = valid_category) to be_err
 //! }
 //! # }
 //! # }
@@ -196,7 +192,7 @@
 //!
 //! ```toml
 //! [dev-dependencies]
-//! lets_expect = "*"
+//! lets_expect = "0"
 //! ```
 //!
 //! # Guide
@@ -309,6 +305,21 @@
 //! # tests::expect_files_create_file::to_make_files_try_to_remove_file_be_true().unwrap();
 //! # tests::expect_files_create_file::to_make_files_file_exists_be_true().unwrap();
 //! ```
+//!
+//! If your `expect` contains a single item you can omit the braces:
+//!
+//! ```
+//! # mod tests {
+//! # use lets_expect::lets_expect;
+//! # lets_expect! { #method
+//! expect(a + 2) when(a = 2) {
+//!     to equal(4)
+//! }
+//! # }
+//! # }
+//! # tests::expect_a_plus_two::when_a_is_two::to_equal_four().unwrap();
+//! ```
+//!
 //!
 //! ## `let`
 //!
@@ -433,6 +444,18 @@
 //! # }
 //! # }
 //! # tests::expect_login_username_password::when_credentials_are_invalid::to_be_false().unwrap();
+//! ```
+//!
+//! If your `when` contains only one item the braces can be ommited:
+//!
+//! ```
+//! # mod tests {
+//! # use lets_expect::lets_expect;
+//! # lets_expect! { #method
+//! expect(a + 2) when(a = 2) to equal(4)
+//! # }
+//! # }
+//! # tests::expect_a_plus_two::when_a_is_two::to_equal_four().unwrap();
 //! ```
 //!
 //! ## `have`
@@ -895,9 +918,7 @@
 //! # use lets_expect::*;
 //! # lets_expect! { #method
 //! expect(a + b + c) as sum_of_three {
-//!     when(a = 1, b = 1, c = 1) as everything_is_one {
-//!         to equal(3)
-//!     }
+//!     when(a = 1, b = 1, c = 1) as everything_is_one to equal(3)
 //! }
 //! # }
 //! # }
