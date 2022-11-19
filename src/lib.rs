@@ -77,24 +77,20 @@
 //!     after { posts.clear() }
 //!
 //!     when(title = valid_title) {
-//!         when(category_id = valid_category) {
-//!             to create_a_post {
-//!                 be_ok,
-//!                 have(as_ref().unwrap().title) equal(valid_title),
-//!                 change(posts.len()) { from(1), to(2) }
-//!             }
+//!         when(category_id = valid_category) to create_a_post {
+//!             be_ok,
+//!             have(as_ref().unwrap().title) equal(valid_title),
+//!             change(posts.len()) { from(1), to(2) }
 //!         }
 //!
-//!         when(category_id = invalid_category) {
-//!             to return_an_error {
-//!                 be_err,
-//!                 have(as_ref().unwrap_err().message) equal("Invalid category"),
-//!                 not_change(posts.len())
-//!             }
+//!         when(category_id = invalid_category) to return_an_error {
+//!             be_err,
+//!             have(as_ref().unwrap_err().message) equal("Invalid category"),
+//!             not_change(posts.len())
 //!         }
 //!     }
 //!
-//!     when(title = invalid_title, category_id = valid_category) { to be_err }
+//!     when(title = invalid_title, category_id = valid_category) to be_err
 //! }
 //! # }
 //! # }
