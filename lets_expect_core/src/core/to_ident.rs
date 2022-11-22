@@ -207,7 +207,13 @@ fn expr_lit_to_ident(lit: &syn::ExprLit) -> String {
         Lit::ByteStr(_) => todo!(),
         Lit::Byte(_) => todo!(),
         Lit::Char(_) => todo!(),
-        Lit::Int(value) => humanize(value.base10_parse::<i64>().unwrap()),
+        Lit::Int(value) => {
+            if let Ok(parsed) = value.base10_parse::<i64>() {
+                humanize(parsed)
+            } else {
+                "number_".to_string() + value.to_string().as_str()
+            }
+        }
         Lit::Float(value) => {
             let value: f64 = value.base10_parse().unwrap();
             let formatted = format!("{:.2}", value);

@@ -35,6 +35,10 @@ mod tests {
             when(value = value * 3) {
                 to equal(30)
             }
+
+            when(value: u128 = 1267650600228229401496703205376) {
+                to equal(2535301200456458802993406410752)
+            }
         }
 
     }
