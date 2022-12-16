@@ -15,9 +15,18 @@ pub fn create_test(identifier: &Ident, runtime: &Runtime, content: &TokenStream)
         Ok(lets) => lets,
         Err(error) => {
             return match error {
-                TopologicalSortError::CyclicDependency => {
+                TopologicalSortError::CyclicDependency(idents) => {
+                    let error_message = format!(
+                        "Cyclic dependency between variables detected: {}",
+                        idents
+                            .iter()
+                            .map(Ident::to_string)
+                            .collect::<Vec<String>>()
+                            .join(", ")
+                    );
+
                     quote_spanned! { identifier.span() =>
-                        compile_error!("Cyclic dependency between variables detected");
+                        compile_error!(#error_message);
                     }
                 }
                 TopologicalSortError::IdentExpected => {

@@ -1,4 +1,4 @@
-use super::{executed_test_case::ExecutedTestCase};
+use super::executed_test_case::ExecutedTestCase;
 use std::fmt::Debug;
 
 pub struct TestFailure {

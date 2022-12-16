@@ -4,13 +4,14 @@ use proc_macro2::TokenTree;
 use syn::{Expr, Ident, Local, Pat, Stmt};
 use topological_sort::TopologicalSort;
 
+#[derive(Clone)]
 struct Let {
     dependencies: HashSet<Ident>,
     statements: Vec<Local>,
 }
 
 pub enum TopologicalSortError {
-    CyclicDependency,
+    CyclicDependency(Vec<Ident>),
     IdentExpected,
 }
 
@@ -36,15 +37,18 @@ pub fn topological_sort(lets: &[Local]) -> Result<Vec<Local>, TopologicalSortErr
     });
 
     let mut result = Vec::new();
+    let mut sorted = sorted.clone();
 
     while let Some(ident) = ts.pop() {
-        let r#let = sorted.get(ident).unwrap();
+        let r#let = sorted.remove(ident).unwrap();
 
         result.extend(r#let.statements.iter().cloned());
     }
 
     if !ts.is_empty() {
-        return Err(TopologicalSortError::CyclicDependency);
+        return Err(TopologicalSortError::CyclicDependency(
+            sorted.keys().cloned().collect(),
+        ));
     }
 
     Ok(result)
