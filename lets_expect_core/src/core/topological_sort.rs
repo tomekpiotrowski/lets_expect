@@ -5,6 +5,7 @@ use topological_sort::TopologicalSort;
 
 use super::{expr_dependencies::expr_dependencies, ident_from_pat::ident_from_pat};
 
+#[derive(Clone)]
 struct Let {
     dependencies: HashSet<Ident>,
     statements: Vec<Local>,
@@ -12,7 +13,7 @@ struct Let {
 
 #[derive(Debug)]
 pub enum TopologicalSortError {
-    CyclicDependency,
+    CyclicDependency(Vec<Ident>),
     IdentExpected,
 }
 
@@ -48,7 +49,9 @@ pub fn topological_sort(lets: &[Local]) -> Result<Vec<Local>, TopologicalSortErr
     }
 
     if !ts.is_empty() {
-        return Err(TopologicalSortError::CyclicDependency);
+        return Err(TopologicalSortError::CyclicDependency(
+            sorted.keys().cloned().collect(),
+        ));
     }
 
     Ok(result)

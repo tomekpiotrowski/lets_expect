@@ -49,12 +49,25 @@ pub fn create_test(
         Ok(lets) => lets,
         Err(error) => {
             return match error {
-                TopologicalSortError::CyclicDependency => quote_spanned! { identifier.span() =>
-                    compile_error!("Cyclic dependency between variables detected");
-                },
-                TopologicalSortError::IdentExpected => quote_spanned! { identifier.span() =>
-                    compile_error!("Expected an identifier in `let`");
-                },
+                TopologicalSortError::CyclicDependency(idents) => {
+                    let error_message = format!(
+                        "Cyclic dependency between variables detected: {}",
+                        idents
+                            .iter()
+                            .map(Ident::to_string)
+                            .collect::<Vec<String>>()
+                            .join(", ")
+                    );
+
+                    quote_spanned! { identifier.span() =>
+                        compile_error!(#error_message);
+                    }
+                }
+                TopologicalSortError::IdentExpected => {
+                    quote_spanned! { identifier.span() =>
+                        compile_error!("Expected an identifier in `let`");
+                    }
+                }
             }
         }
     };
