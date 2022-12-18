@@ -39,7 +39,6 @@ pub fn topological_sort(lets: &[Local]) -> Result<Vec<Local>, TopologicalSortErr
     });
 
     let mut result = Vec::new();
-    let mut sorted = sorted.clone();
 
     while let Some(ident) = ts.pop() {
         let r#let = sorted
