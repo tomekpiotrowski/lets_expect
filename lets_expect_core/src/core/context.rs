@@ -139,12 +139,10 @@ impl Context {
         Ok(context)
     }
 
-    pub fn to_tokens(&self, span: &Span, runtime: &Runtime, extra_lets: &[Local]) -> TokenStream {
-        let mut lets = self.lets.clone();
-        lets.extend(extra_lets.to_vec());
+    pub fn to_tokens(&self, span: &Span, runtime: &Runtime) -> TokenStream {
         let runtime = runtime.extend(
             None,
-            &lets,
+            &self.lets,
             &self
                 .befores
                 .iter()
@@ -159,7 +157,7 @@ impl Context {
         );
 
         let tos = self.tos.iter().map(|to| {
-            let to_tokens = to.to_tokens(&runtime);
+            let (to_tokens, dependencies) = to.to_tokens(&runtime);
             let identifier = to.identifier();
 
             let content = quote_spanned! { identifier.span() =>
@@ -170,8 +168,9 @@ impl Context {
                 vec![test_case]
             };
 
-            create_test(&identifier, &runtime, &content)
+            create_test(&identifier, &runtime, &content, &dependencies)
         });
+
         let stories = self.stories.iter().map(|story| story.to_tokens(&runtime));
         let expects = self.expects.iter().map(|child| child.to_tokens(&runtime));
         let whens = self.whens.iter().map(|child| child.to_tokens(&runtime));

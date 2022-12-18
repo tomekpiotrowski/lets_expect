@@ -68,13 +68,12 @@ impl Expect {
             &Vec::new(),
             None,
         );
-        let context = self
-            .context
-            .to_tokens(&keyword.span(), &runtime, &Vec::new());
+        let context = self.context.to_tokens(&keyword.span(), &runtime);
         let module_identifier = Ident::new(
             &format!("expect_{}", self.subject_identifier),
             self.subject_identifier.span(),
         );
+
         create_module(&keyword.span(), &module_identifier, &context)
     }
 }

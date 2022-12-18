@@ -5,6 +5,8 @@ mod create_test;
 mod expect;
 mod expect_block;
 mod expectation;
+mod expr_dependencies;
+mod ident_from_pat;
 mod keyword;
 mod mode;
 mod mutable_token;
