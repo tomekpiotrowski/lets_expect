@@ -1,3 +1,6 @@
+use std::collections::HashSet;
+
+use super::expr_dependencies::expr_dependencies;
 use super::keyword;
 use super::mutable_token::mutable_token;
 use super::to_ident::{expr_to_ident, path_to_ident};
@@ -314,6 +317,40 @@ impl Expectation {
             Expectation::NotChange { expr, .. } => {
                 ("not change".to_string(), expr.to_token_stream().to_string()).into()
             }
+        }
+    }
+
+    pub fn dependencies(&self) -> HashSet<Ident> {
+        match self {
+            Expectation::Single { assertion } => expr_dependencies(assertion),
+            Expectation::Have {
+                expr, assertions, ..
+            } => {
+                let mut dependencies = expr_dependencies(expr);
+                for assertion in assertions {
+                    dependencies.extend(expr_dependencies(assertion));
+                }
+                dependencies
+            }
+            Expectation::Make {
+                expr, assertions, ..
+            } => {
+                let mut dependencies = expr_dependencies(expr);
+                for assertion in assertions {
+                    dependencies.extend(expr_dependencies(assertion));
+                }
+                dependencies
+            }
+            Expectation::Change {
+                expr, assertions, ..
+            } => {
+                let mut dependencies = expr_dependencies(expr);
+                for assertion in assertions {
+                    dependencies.extend(expr_dependencies(assertion));
+                }
+                dependencies
+            }
+            Expectation::NotChange { expr, .. } => expr_dependencies(expr),
         }
     }
 }

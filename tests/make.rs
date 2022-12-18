@@ -9,11 +9,13 @@ mod tests {
     lets_expect! {
         expect(point.x = 5) {
             let mut point = Point { x: 1, y: 2 };
+            let unrelated = 5;
 
             to have_valid_coordinates {
                 make(point.x) equal(5),
                 make(point.x) { not_equal(1) },
-                make(point.y) { not_equal(1), equal(2) }
+                make(point.y) { not_equal(1), equal(2) },
+                make(unrelated) equal(5)
             }
         }
 

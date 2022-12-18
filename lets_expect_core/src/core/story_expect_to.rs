@@ -1,4 +1,6 @@
-use proc_macro2::TokenStream;
+use std::collections::HashSet;
+
+use proc_macro2::{Ident, TokenStream};
 use quote::quote_spanned;
 use syn::{parse::Parse, spanned::Spanned, Expr, Token};
 
@@ -50,7 +52,7 @@ impl Parse for StoryExpectTo {
 }
 
 impl StoryExpectTo {
-    pub fn to_tokens(&self, runtime: &Runtime) -> TokenStream {
+    pub fn to_tokens(&self, runtime: &Runtime) -> (TokenStream, HashSet<Ident>) {
         let runtime = runtime.extend(
             Some((self.mutable, self.subject.clone())),
             &[],
@@ -58,17 +60,20 @@ impl StoryExpectTo {
             &Vec::new(),
             None,
         );
-        let to_tokens = self.to.to_tokens(&runtime);
+        let (to_tokens, dependencies) = self.to.to_tokens(&runtime);
 
-        quote_spanned! { self.keyword.span() =>
-            let test_case = { #to_tokens };
-            let failed = test_case.failed();
+        (
+            quote_spanned! { self.keyword.span() =>
+                let test_case = { #to_tokens };
+                let failed = test_case.failed();
 
-            test_cases.push(test_case);
+                test_cases.push(test_case);
 
-            if failed {
-                return test_result_from_cases(test_cases);
-            }
-        }
+                if failed {
+                    return test_result_from_cases(test_cases);
+                }
+            },
+            dependencies,
+        )
     }
 }
