@@ -4,12 +4,16 @@ mod tests {
 
     lets_expect! {
         let mut messages: Vec<&str> = Vec::new();
+        let mut _used_only_in_before = 0;
+        let mut _used_only_in_after = 0;
 
         before {
             messages.push("first message");
+            _used_only_in_before += 1;
         }
 
         after {
+            _used_only_in_after += 1;
             messages.clear();
         }
 

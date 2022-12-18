@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use super::{keyword, runtime::Runtime, to::To};
 use proc_macro2::{Ident, TokenStream};
 
@@ -11,7 +13,7 @@ impl ToBlock {
         Self { keyword, to }
     }
 
-    pub fn to_tokens(&self, runtime: &Runtime) -> TokenStream {
+    pub fn to_tokens(&self, runtime: &Runtime) -> (TokenStream, HashSet<Ident>) {
         self.to.to_tokens(runtime)
     }
 

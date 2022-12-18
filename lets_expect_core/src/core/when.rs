@@ -131,10 +131,8 @@ fn parse_lets_in_parentheses(
 
 impl When {
     pub fn to_tokens(&self, keyword: &keyword::when, runtime: &Runtime) -> TokenStream {
-        let runtime = runtime.add_when(self.string.clone());
-        let context = self
-            .context
-            .to_tokens(&keyword.span(), &runtime, &self.lets);
+        let runtime = runtime.add_when(self.string.clone()).add_lets(&self.lets);
+        let context = self.context.to_tokens(&keyword.span(), &runtime);
         create_module(&keyword.span(), &self.identifier, &context)
     }
 }

@@ -70,4 +70,18 @@ impl Runtime {
             whens: new_whens,
         }
     }
+
+    pub fn add_lets(&self, lets: &[Local]) -> Runtime {
+        let mut new_lets = self.lets.clone();
+        new_lets.extend(lets.to_vec());
+
+        Runtime {
+            subject: self.subject.clone(),
+            lets: new_lets,
+            befores: self.befores.clone(),
+            afters: self.afters.clone(),
+            mode: self.mode,
+            whens: self.whens.clone(),
+        }
+    }
 }
