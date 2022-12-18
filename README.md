@@ -1,4 +1,4 @@
-![GitHub Workflow Status](https://img.shields.io/github/workflow/status/tomekpiotrowski/lets_expect/Build)
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/tomekpiotrowski/lets_expect/build.yaml?branch=main)
 ![Crates.io](https://img.shields.io/crates/v/lets_expect)
 ![GitHub](https://img.shields.io/github/license/tomekpiotrowski/lets_expect)
 
