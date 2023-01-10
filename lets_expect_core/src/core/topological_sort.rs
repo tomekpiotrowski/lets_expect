@@ -30,13 +30,14 @@ pub fn topological_sort(lets: &[Local]) -> Result<Vec<Local>, TopologicalSortErr
             })?;
 
     let mut ts = TopologicalSort::<&Ident>::new();
-    sorted.iter().for_each(|(ident, r#let)| {
+
+    for (ident, r#let) in sorted.iter() {
         ts.insert(ident);
 
         r#let.dependencies.iter().for_each(|dependency| {
             ts.add_dependency(dependency, ident);
         });
-    });
+    }
 
     let mut result = Vec::new();
 

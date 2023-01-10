@@ -37,7 +37,7 @@ impl Parse for WhenLet {
         }
 
         let init = (input.parse()?, input.parse()?);
-        Ok(WhenLet { attrs, pat, init })
+        Ok(Self { attrs, pat, init })
     }
 }
 
@@ -92,7 +92,7 @@ impl Parse for When {
             Context::from_single_item(input)?
         };
 
-        Ok(When {
+        Ok(Self {
             lets,
             identifier,
             string,

@@ -99,7 +99,6 @@ pub(crate) fn expr_dependencies(expr: &Expr) -> HashSet<Ident> {
             dependencies.extend(expr_dependencies(&for_loop.expr));
             dependencies.extend(for_loop.body.stmts.iter().flat_map(stmt_dependencies));
         }
-        Expr::Continue(_) => {}
         Expr::Break(r#break) => {
             if let Some(expr) = &r#break.expr {
                 dependencies.extend(expr_dependencies(expr));
@@ -201,7 +200,6 @@ pub fn stmt_dependencies(stmt: &Stmt) -> HashSet<Ident> {
             }
         }
         Stmt::Item(_) => HashSet::new(),
-        Stmt::Expr(expr) => expr_dependencies(expr),
-        Stmt::Semi(expr, _) => expr_dependencies(expr),
+        Stmt::Expr(expr) | Stmt::Semi(expr, _) => expr_dependencies(expr),
     }
 }

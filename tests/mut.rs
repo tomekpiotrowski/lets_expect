@@ -14,7 +14,7 @@ mod tests {
 
         expect(a += 1) {
             when(mut a: i64 = 1) {
-                to change(a.clone()) { from(1), to(2) }
+                to change(a) { from(1), to(2) }
             }
         }
     }

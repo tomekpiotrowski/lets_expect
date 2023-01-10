@@ -8,8 +8,8 @@ pub struct AfterBlock {
 }
 
 impl AfterBlock {
-    pub fn new(keyword: keyword::after, block: Block) -> AfterBlock {
-        AfterBlock {
+    pub fn new(keyword: keyword::after, block: Block) -> Self {
+        Self {
             keyword,
             after: block,
         }

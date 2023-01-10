@@ -28,7 +28,7 @@ pub struct Context {
 
 impl Parse for Context {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let mut context = Context::default();
+        let mut context = Self::default();
 
         if input.peek(Token![#]) {
             input.parse::<Token![#]>()?;
@@ -132,7 +132,7 @@ fn handle_story(keyword: keyword::story, input: &ParseBuffer) -> Result<StoryBlo
 
 impl Context {
     pub fn from_single_item(input: ParseStream) -> syn::Result<Self> {
-        let mut context = Context::default();
+        let mut context = Self::default();
 
         parse_single_context_item(input, &mut context)?;
 

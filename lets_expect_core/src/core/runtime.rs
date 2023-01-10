@@ -20,7 +20,7 @@ impl Runtime {
         befores: &[Block],
         afters: &[Block],
         mode: Option<Mode>,
-    ) -> Runtime {
+    ) -> Self {
         let new_subject = if let Some(subject) = subject {
             Some(subject)
         } else {
@@ -47,7 +47,7 @@ impl Runtime {
 
         let new_mode = if mode.is_some() { mode } else { self.mode };
 
-        Runtime {
+        Self {
             subject: new_subject,
             lets: new_lets,
             befores: new_befores,
@@ -57,11 +57,11 @@ impl Runtime {
         }
     }
 
-    pub fn add_when(&self, when: String) -> Runtime {
+    pub fn add_when(&self, when: String) -> Self {
         let mut new_whens = self.whens.clone();
         new_whens.push(when);
 
-        Runtime {
+        Self {
             subject: self.subject.clone(),
             lets: self.lets.clone(),
             befores: self.befores.clone(),
@@ -71,11 +71,11 @@ impl Runtime {
         }
     }
 
-    pub fn add_lets(&self, lets: &[Local]) -> Runtime {
+    pub fn add_lets(&self, lets: &[Local]) -> Self {
         let mut new_lets = self.lets.clone();
         new_lets.extend(lets.to_vec());
 
-        Runtime {
+        Self {
             subject: self.subject.clone(),
             lets: new_lets,
             befores: self.befores.clone(),

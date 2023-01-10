@@ -32,14 +32,14 @@ impl Parse for To {
 
             let expectations: Punctuated<Expectation, Comma> =
                 Punctuated::parse_separated_nonempty(&content)?;
-            Ok(To::Multi {
+            Ok(Self::Multi {
                 identifier: ident,
                 expectations: expectations.into_iter().collect(),
             })
         } else if input.peek(Ident) {
             let expectation = input.parse::<Expectation>()?;
 
-            Ok(To::Single(Box::new(expectation)))
+            Ok(Self::Single(Box::new(expectation)))
         } else {
             Err(input.error("expected identifier or expression"))
         }
@@ -56,11 +56,11 @@ type ExpectationTokens = (
 impl To {
     pub fn identifier(&self) -> Ident {
         match self {
-            To::Single(expectation) => Ident::new(
+            Self::Single(expectation) => Ident::new(
                 format!("{}{}", TEST_NAME_PREFIX, &expectation.identifier()).as_str(),
                 expectation.span(),
             ),
-            To::Multi { identifier, .. } => Ident::new(
+            Self::Multi { identifier, .. } => Ident::new(
                 format!("{}{}", TEST_NAME_PREFIX, identifier).as_str(),
                 identifier.span(),
             ),
@@ -69,8 +69,8 @@ impl To {
 
     fn expectations(&self) -> Vec<Expectation> {
         match self {
-            To::Single(expectation) => vec![(**expectation).clone()],
-            To::Multi { expectations, .. } => expectations.clone(),
+            Self::Single(expectation) => vec![(**expectation).clone()],
+            Self::Multi { expectations, .. } => expectations.clone(),
         }
     }
 
@@ -149,6 +149,7 @@ impl To {
             }
         } else {
             quote_spanned! { identifier.span() =>
+                #[allow(clippy::let_unit_value)]
                 let #mutable_token subject = #subject;
             }
         }

@@ -8,9 +8,9 @@ use syn::{
 pub fn stmt_to_ident(stmt: &Stmt) -> String {
     match stmt {
         Stmt::Local(local) => local_to_ident(local),
-        Stmt::Item(_) => todo!("Item not supported"),
+        Stmt::Item(_) => unimplemented!("Item not supported"),
         Stmt::Expr(expr) => expr_to_ident(expr),
-        Stmt::Semi(_, _) => todo!("Semi not supported"),
+        Stmt::Semi(_, _) => unimplemented!("Semi not supported"),
     }
 }
 
@@ -32,7 +32,7 @@ pub fn pat_to_ident(pat: &Pat) -> Ident {
     match pat {
         Pat::Ident(pat) => pat.ident.clone(),
         Pat::Type(pat) => pat_to_ident(&pat.pat),
-        _ => todo!("Unable to convert pattern to identifier"),
+        _ => unimplemented!("Unable to convert pattern to identifier"),
     }
 }
 
@@ -53,7 +53,7 @@ pub fn expr_to_ident(expr: &syn::Expr) -> String {
                 + "_"
                 + &expr_to_ident(&assign_op.right)
         }
-        Expr::Async(_) => todo!("Async not supported"),
+        Expr::Async(_) => unimplemented!("Async not supported"),
         Expr::Await(expr_await) => "await_".to_string() + &expr_to_ident(&expr_await.base),
         Expr::Binary(binary) => {
             expr_to_ident(&binary.left)
@@ -64,7 +64,7 @@ pub fn expr_to_ident(expr: &syn::Expr) -> String {
         }
         Expr::Block(block) => block_to_ident(block),
         Expr::Box(boxed) => "boxed_".to_string() + &expr_to_ident(&boxed.expr),
-        Expr::Break(_) => todo!("Break not supported"),
+        Expr::Break(_) => unimplemented!("Break not supported"),
         Expr::Call(call) => {
             expr_to_ident(&call.func)
                 + if !call.args.is_empty() {
@@ -75,18 +75,18 @@ pub fn expr_to_ident(expr: &syn::Expr) -> String {
                 .as_str()
         }
         Expr::Cast(cast) => expr_to_ident(&cast.expr) + "_as_" + &type_to_ident(&cast.ty),
-        Expr::Closure(_) => todo!("Closure not supported"),
-        Expr::Continue(_) => todo!("Continue not supported"),
+        Expr::Closure(_) => unimplemented!("Closure not supported"),
+        Expr::Continue(_) => unimplemented!("Continue not supported"),
         Expr::Field(field) => {
             expr_to_ident(&field.base) + "_" + member_to_ident(&field.member).as_str()
         }
-        Expr::ForLoop(_) => todo!("ForLoop not supported"),
-        Expr::Group(_) => todo!("Group not supported"),
+        Expr::ForLoop(_) => unimplemented!("ForLoop not supported"),
+        Expr::Group(_) => unimplemented!("Group not supported"),
         Expr::If(if_expr) => "if_".to_string() + &expr_to_ident(&if_expr.cond),
-        Expr::Index(_) => todo!("Index not supported"),
-        Expr::Let(_) => todo!("Let not supported"),
+        Expr::Index(_) => unimplemented!("Index not supported"),
+        Expr::Let(_) => unimplemented!("Let not supported"),
         Expr::Lit(lit) => expr_lit_to_ident(lit),
-        Expr::Loop(_) => todo!("Loop not supported"),
+        Expr::Loop(_) => unimplemented!("Loop not supported"),
         Expr::Macro(mac) => mac.mac.path.get_ident().unwrap().to_string().to_lowercase(),
         Expr::Match(_) => "match".to_string(),
         Expr::MethodCall(method_call) => {
@@ -104,21 +104,21 @@ pub fn expr_to_ident(expr: &syn::Expr) -> String {
         Expr::Path(path) => path_to_ident(path),
         Expr::Range(range) => range_to_ident(range),
         Expr::Reference(reference) => expr_to_ident(&reference.expr),
-        Expr::Repeat(_) => todo!("Repeat not supported"),
-        Expr::Return(_) => todo!("Return not supported"),
+        Expr::Repeat(_) => unimplemented!("Repeat not supported"),
+        Expr::Return(_) => unimplemented!("Return not supported"),
         Expr::Struct(struc) => struc.path.get_ident().unwrap().to_string().to_lowercase(),
-        Expr::Try(_) => todo!("Try not supported"),
-        Expr::TryBlock(_) => todo!("TryBlock not supported"),
+        Expr::Try(_) => unimplemented!("Try not supported"),
+        Expr::TryBlock(_) => unimplemented!("TryBlock not supported"),
         Expr::Tuple(tuple) => punctuated_to_ident(&tuple.elems),
-        Expr::Type(_) => todo!("Type not supported"),
+        Expr::Type(_) => unimplemented!("Type not supported"),
         Expr::Unary(unary) => {
             unary_op_to_ident(&unary.op).to_string() + "_" + &expr_to_ident(&unary.expr)
         }
-        Expr::Unsafe(_) => todo!("Unsafe not supported"),
-        Expr::Verbatim(_) => todo!("Verbatim not supported"),
-        Expr::While(_) => todo!("While not supported"),
-        Expr::Yield(_) => todo!("Yield not supported"),
-        _ => todo!("Expected Expr, got {:?}", expr),
+        Expr::Unsafe(_) => unimplemented!("Unsafe not supported"),
+        Expr::Verbatim(_) => unimplemented!("Verbatim not supported"),
+        Expr::While(_) => unimplemented!("While not supported"),
+        Expr::Yield(_) => unimplemented!("Yield not supported"),
+        _ => unimplemented!("Expected Expr, got {:?}", expr),
     }
 }
 
@@ -129,13 +129,13 @@ fn type_to_ident(ty: &Type) -> String {
             expr_to_ident(&array.len),
             type_to_ident(&array.elem)
         ),
-        Type::BareFn(_) => todo!(),
-        Type::Group(_) => todo!(),
-        Type::ImplTrait(_) => todo!(),
-        Type::Infer(_) => todo!(),
-        Type::Macro(_) => todo!(),
-        Type::Never(_) => todo!(),
-        Type::Paren(_) => todo!(),
+        Type::BareFn(_) => unimplemented!(),
+        Type::Group(_) => unimplemented!(),
+        Type::ImplTrait(_) => unimplemented!(),
+        Type::Infer(_) => unimplemented!(),
+        Type::Macro(_) => unimplemented!(),
+        Type::Never(_) => unimplemented!(),
+        Type::Paren(_) => unimplemented!(),
         Type::Path(path) => path
             .path
             .segments
@@ -144,13 +144,13 @@ fn type_to_ident(ty: &Type) -> String {
             .ident
             .to_string()
             .to_lowercase(),
-        Type::Ptr(_) => todo!(),
-        Type::Reference(_) => todo!(),
-        Type::Slice(_) => todo!(),
-        Type::TraitObject(_) => todo!(),
-        Type::Tuple(_) => todo!(),
-        Type::Verbatim(_) => todo!(),
-        _ => todo!(),
+        Type::Ptr(_) => unimplemented!(),
+        Type::Reference(_) => unimplemented!(),
+        Type::Slice(_) => unimplemented!(),
+        Type::TraitObject(_) => unimplemented!(),
+        Type::Tuple(_) => unimplemented!(),
+        Type::Verbatim(_) => unimplemented!(),
+        _ => unimplemented!(),
     }
 }
 
@@ -204,9 +204,9 @@ pub fn punctuated_to_ident(punctuated: &Punctuated<Expr, Comma>) -> String {
 fn expr_lit_to_ident(lit: &syn::ExprLit) -> String {
     match &lit.lit {
         Lit::Str(_) => "string".to_string(),
-        Lit::ByteStr(_) => todo!(),
-        Lit::Byte(_) => todo!(),
-        Lit::Char(_) => todo!(),
+        Lit::ByteStr(_) => unimplemented!(),
+        Lit::Byte(_) => unimplemented!(),
+        Lit::Char(_) => unimplemented!(),
         Lit::Int(value) => {
             if let Ok(parsed) = value.base10_parse::<i64>() {
                 humanize(parsed)
@@ -226,7 +226,7 @@ fn expr_lit_to_ident(lit: &syn::ExprLit) -> String {
             format!("{}_point_{}", int_part, fraction_part)
         }
         Lit::Bool(value) => value.value.to_string(),
-        Lit::Verbatim(_) => todo!(),
+        Lit::Verbatim(_) => unimplemented!(),
     }
 }
 
@@ -258,15 +258,15 @@ fn binary_op_to_ident(op: &BinOp) -> &'static str {
         BinOp::Rem(_) => "remainder",
         BinOp::And(_) => "and",
         BinOp::Or(_) => "or",
-        BinOp::BitXor(_) => "xor",
-        BinOp::BitAnd(_) => "and",
-        BinOp::BitOr(_) => "or",
+        BinOp::BitXor(_) => "bit_xor",
+        BinOp::BitAnd(_) => "bit_and",
+        BinOp::BitOr(_) => "bit_or",
         BinOp::Shl(_) => "shift_left_by",
         BinOp::Shr(_) => "shift_right_by",
         BinOp::Eq(_) => "equals",
         BinOp::Lt(_) => "less_than",
         BinOp::Le(_) => "less_equal_than",
-        BinOp::Ne(_) => "not_equal_to",
+        BinOp::Ne(_) => "not_equal",
         BinOp::Ge(_) => "greater_equal_than",
         BinOp::Gt(_) => "greater_than",
         BinOp::AddEq(_) => "add_equal",

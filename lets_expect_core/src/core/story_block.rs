@@ -9,7 +9,7 @@ pub struct StoryBlock {
 
 impl StoryBlock {
     pub fn new(keyword: keyword::story, story: Story) -> Self {
-        StoryBlock { keyword, story }
+        Self { keyword, story }
     }
 
     pub fn to_tokens(&self, runtime: &Runtime) -> TokenStream {

@@ -17,7 +17,7 @@ pub struct StoryExpectTo {
 
 impl StoryExpectTo {
     pub fn new(keyword: keyword::expect, subject: Expr, mutable: bool, to: ToBlock) -> Self {
-        StoryExpectTo {
+        Self {
             keyword,
             subject,
             mutable,
@@ -47,7 +47,7 @@ impl Parse for StoryExpectTo {
         let to = input.parse::<To>()?;
         let to = ToBlock::new(to_keyword, to);
 
-        Ok(StoryExpectTo::new(keyword, subject, mutable, to))
+        Ok(Self::new(keyword, subject, mutable, to))
     }
 }
 

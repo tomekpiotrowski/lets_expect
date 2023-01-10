@@ -8,8 +8,8 @@ pub struct BeforeBlock {
 }
 
 impl BeforeBlock {
-    pub fn new(keyword: keyword::before, block: Block) -> BeforeBlock {
-        BeforeBlock {
+    pub fn new(keyword: keyword::before, block: Block) -> Self {
+        Self {
             keyword,
             before: block,
         }

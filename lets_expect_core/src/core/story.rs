@@ -24,7 +24,7 @@ pub struct Story {
 
 impl Story {
     pub fn new(identifier: Ident, elements: Vec<StoryElement>) -> Self {
-        Story {
+        Self {
             identifier,
             elements,
         }
@@ -48,7 +48,7 @@ impl Parse for Story {
             }
         }
 
-        Ok(Story::new(identifier, elements))
+        Ok(Self::new(identifier, elements))
     }
 }
 

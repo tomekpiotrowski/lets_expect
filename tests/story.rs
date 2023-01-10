@@ -52,8 +52,8 @@ mod tests {
 
             let login_result = page.login(&invalid_user);
 
-            expect(&login_result) to be_err
-            expect(&login_result) to equal(Err(AuthenticationError { message: "Invalid credentials".to_string() }))
+            expect(login_result.clone()) to be_err
+            expect(login_result) to equal(Err(AuthenticationError { message: "Invalid credentials".to_string() }))
             expect(page.logged_in) to be_false
 
             let login_result = page.login(&valid_user);
