@@ -45,8 +45,9 @@
 //! 5. [Supported libraries](#supported-libraries)
 //!     * [Tokio](#tokio)
 //! 6. [More examples](#more-examples)
-//! 7. [Debugging](#debugging)
-//! 8. [License](#license)
+//! 7. [Known issues and limitations](#known-issues-and-limitations)
+//! 8. [Debugging](#debugging)
+//! 9. [License](#license)
 //!
 //! ## Introduction
 //!
@@ -1133,6 +1134,13 @@
 //!
 //! `lets_expect` repository contains tests that might be useful as examples of using the library.
 //! You can find them [here](https://github.com/tomekpiotrowski/lets_expect/tree/main/tests).
+//!
+//! ## Known issues and limitations
+//!
+//! * rust-analyzer's auto-import doesn't seem to work well from inside of macros. It might be necessary to manually add `use` statements for types from outside of the module.
+//! * Syntax highlighting doesn't work with `lets_expect` syntax. Currently there's no way for Rust macros to export their syntax to language tools.
+//! * Shared contexts (similar to [RSpec](https://relishapp.com/rspec/rspec-core/docs/example-groups/shared-context)) seem to be impossible to implement without
+//!   [eager macro expansion](https://rustc-dev-guide.rust-lang.org/macro-expansion.html#eager-expansion).
 //!
 //! ## Debugging
 //!
