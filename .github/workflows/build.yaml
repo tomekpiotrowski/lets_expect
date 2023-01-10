@@ -64,7 +64,7 @@ jobs:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
         with:
           timeout_seconds: 300
-          max_attempts: 3
+          max_attempts: 5
           command: cd lets_expect_core && cargo publish --token $CARGO_REGISTRY_TOKEN
       - name: Publish lets_expect_assertions
         uses: nick-fields/retry@v2
@@ -72,7 +72,7 @@ jobs:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
         with:
           timeout_seconds: 300
-          max_attempts: 3
+          max_attempts: 5
           command: cd lets_expect_assertions && cargo publish --token $CARGO_REGISTRY_TOKEN
       - name: Publish lets_expect_macro
         uses: nick-fields/retry@v2
@@ -80,7 +80,7 @@ jobs:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
         with:
           timeout_seconds: 300
-          max_attempts: 3
+          max_attempts: 5
           command: cd lets_expect_macro && cargo publish --token $CARGO_REGISTRY_TOKEN
       - name: Publish lets_expect
         uses: nick-fields/retry@v2
@@ -88,7 +88,7 @@ jobs:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
         with:
           timeout_seconds: 300
-          max_attempts: 3
+          max_attempts: 5
           command: cargo publish --token $CARGO_REGISTRY_TOKEN
       - name: Release
         uses: softprops/action-gh-release@v1
