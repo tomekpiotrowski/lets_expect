@@ -32,7 +32,7 @@ mod tests {
             }
 
             expect(messages.len()) { to equal(2) }
-            expect(messages.get(1).unwrap()) { to equal("second message") }
+            expect(*messages.get(1).unwrap()) as second_message { to equal("second message") }
 
         }
 

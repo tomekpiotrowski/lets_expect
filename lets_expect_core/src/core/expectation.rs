@@ -46,28 +46,28 @@ pub enum Expectation {
 impl Expectation {
     pub fn subject_may_panic(&self) -> bool {
         match self {
-            Expectation::Single { assertion } => parse_panic_assertion(assertion),
-            Expectation::Have { .. }
-            | Expectation::Make { .. }
-            | Expectation::Change { .. }
-            | Expectation::NotChange { .. } => false,
+            Self::Single { assertion } => parse_panic_assertion(assertion),
+            Self::Have { .. }
+            | Self::Make { .. }
+            | Self::Change { .. }
+            | Self::NotChange { .. } => false,
         }
     }
 
     pub fn span(&self) -> Span {
         match self {
-            Expectation::Single { assertion } => assertion.span(),
-            Expectation::Have { expr, .. } => expr.span(),
-            Expectation::Make { expr, .. } => expr.span(),
-            Expectation::Change { expr, .. } => expr.span(),
-            Expectation::NotChange { expr, .. } => expr.span(),
+            Self::Single { assertion } => assertion.span(),
+            Self::Have { expr, .. }
+            | Self::Make { expr, .. }
+            | Self::Change { expr, .. }
+            | Self::NotChange { expr, .. } => expr.span(),
         }
     }
 
     pub fn identifier(&self) -> String {
         match self {
-            Expectation::Single { assertion, .. } => expr_to_ident(assertion),
-            Expectation::Have {
+            Self::Single { assertion, .. } => expr_to_ident(assertion),
+            Self::Have {
                 expr,
                 assertions,
                 mutable,
@@ -83,7 +83,7 @@ impl Expectation {
                     expr_to_ident(assertions.first().expect("Expected at least one assertion"))
                 )
             }
-            Expectation::Make {
+            Self::Make {
                 expr,
                 assertions,
                 mutable,
@@ -99,7 +99,7 @@ impl Expectation {
                     expr_to_ident(assertions.first().expect("Expected at least one assertion"))
                 )
             }
-            Expectation::Change {
+            Self::Change {
                 expr, assertions, ..
             } => {
                 let call_ident = expr_to_ident(expr);
@@ -110,7 +110,7 @@ impl Expectation {
                     expr_to_ident(assertions.first().expect("Expected at least one assertion"))
                 )
             }
-            Expectation::NotChange { expr, .. } => {
+            Self::NotChange { expr, .. } => {
                 let call_ident = expr_to_ident(expr);
 
                 format!("not_change_{}", call_ident)
@@ -120,10 +120,8 @@ impl Expectation {
 
     pub fn before_subject_tokens(&self, expectation: &String) -> TokenStream {
         match self {
-            Expectation::Single { .. } => TokenStream::new(),
-            Expectation::Have { .. } => TokenStream::new(),
-            Expectation::Make { .. } => TokenStream::new(),
-            Expectation::Change {
+            Self::Have { .. } | Self::Make { .. } | Self::Single { .. } => TokenStream::new(),
+            Self::Change {
                 expr, assertions, ..
             } => {
                 let expr_may_panic = assertions.iter().any(parse_panic_assertion);
@@ -136,11 +134,11 @@ impl Expectation {
                     }
                 } else {
                     quote_spanned! { expr.span() =>
-                        let #before_variable_name = &#expr;
+                        let #before_variable_name = #expr;
                     }
                 }
             }
-            Expectation::NotChange { expr, .. } => {
+            Self::NotChange { expr, .. } => {
                 let before_variable_name =
                     Ident::new(format!("{}_before", expectation).as_str(), expr.span());
 
@@ -153,8 +151,8 @@ impl Expectation {
 
     pub fn after_subject_tokens(&self, expectation: &String) -> TokenStream {
         match self {
-            Expectation::Single { .. } => TokenStream::new(),
-            Expectation::Have {
+            Self::Single { .. } => TokenStream::new(),
+            Self::Have {
                 expr,
                 assertions,
                 mutable,
@@ -166,15 +164,15 @@ impl Expectation {
 
                 if expr_may_panic {
                     quote_spanned! { expr.span() =>
-                        let #result_variable_name = &panic::catch_unwind(|| { subject.#expr });
+                        let #result_variable_name = panic::catch_unwind(|| { subject.#expr });
                     }
                 } else {
                     quote_spanned! { expr.span() =>
-                        let #result_variable_name = &#mutable subject.#expr;
+                        let #mutable #result_variable_name = subject.#expr;
                     }
                 }
             }
-            Expectation::Make {
+            Self::Make {
                 expr,
                 assertions,
                 mutable,
@@ -186,15 +184,15 @@ impl Expectation {
 
                 if expr_may_panic {
                     quote_spanned! { expr.span() =>
-                        let #result_variable_name = &panic::catch_unwind(|| { #expr });
+                        let #result_variable_name = panic::catch_unwind(|| { #expr });
                     }
                 } else {
                     quote_spanned! { expr.span() =>
-                        let #result_variable_name = &#mutable #expr;
+                        let #mutable #result_variable_name = #expr;
                     }
                 }
             }
-            Expectation::Change {
+            Self::Change {
                 expr, assertions, ..
             } => {
                 let expr_may_panic = assertions.iter().any(parse_panic_assertion);
@@ -203,20 +201,20 @@ impl Expectation {
 
                 if expr_may_panic {
                     quote_spanned! { expr.span() =>
-                        let #after_variable_name = &panic::catch_unwind(|| { #expr });
+                        let #after_variable_name = panic::catch_unwind(|| { #expr });
                     }
                 } else {
                     quote_spanned! { expr.span() =>
-                        let #after_variable_name = &#expr;
+                        let #after_variable_name = #expr;
                     }
                 }
             }
-            Expectation::NotChange { expr, .. } => {
+            Self::NotChange { expr, .. } => {
                 let after_variable_name =
                     Ident::new(format!("{}_after", expectation).as_str(), expr.span());
 
                 quote_spanned! { expr.span() =>
-                    let #after_variable_name = &#expr;
+                    let #after_variable_name = #expr;
                 }
             }
         }
@@ -228,7 +226,7 @@ impl Expectation {
         expectation: &String,
     ) -> Vec<(String, TokenStream)> {
         match self {
-            Expectation::Single { assertion, .. } => {
+            Self::Single { assertion, .. } => {
                 let assertion_label = assertion.to_token_stream().to_string();
                 let mutable_token = mutable_token(subject_mutable, &assertion.span());
 
@@ -239,35 +237,45 @@ impl Expectation {
                     },
                 )]
             }
-            Expectation::Have { assertions, .. } => assertions
+            Self::Have {
+                assertions,
+                mutable,
+                ..
+            } => assertions
                 .iter()
                 .map(|assertion| {
                     let assertion_label = assertion.to_token_stream().to_string();
                     let result_variable_name = Ident::new(expectation.as_str(), assertion.span());
+                    let mutable_token = mutable_token(*mutable, &assertion.span());
 
                     (
                         assertion_label,
                         quote_spanned! { assertion.span() =>
-                            #assertion(#result_variable_name)
+                            #assertion(&#mutable_token #result_variable_name)
                         },
                     )
                 })
                 .collect(),
-            Expectation::Make { assertions, .. } => assertions
+            Self::Make {
+                assertions,
+                mutable,
+                ..
+            } => assertions
                 .iter()
                 .map(|assertion| {
                     let assertion_label = assertion.to_token_stream().to_string();
                     let result_variable_name = Ident::new(expectation.as_str(), assertion.span());
+                    let mutable_token = mutable_token(*mutable, &assertion.span());
 
                     (
                         assertion_label,
                         quote_spanned! { assertion.span() =>
-                            #assertion(&#result_variable_name)
+                            #assertion(&#mutable_token #result_variable_name)
                         },
                     )
                 })
                 .collect(),
-            Expectation::Change {
+            Self::Change {
                 expr, assertions, ..
             } => assertions
                 .iter()
@@ -286,7 +294,7 @@ impl Expectation {
                     )
                 })
                 .collect(),
-            Expectation::NotChange { expr, .. } => {
+            Self::NotChange { expr, .. } => {
                 let before_variable_name =
                     Ident::new(format!("{}_before", expectation).as_str(), expr.span());
                 let after_variable_name =
@@ -304,17 +312,17 @@ impl Expectation {
 
     pub fn label(&self) -> Option<(String, String)> {
         match self {
-            Expectation::Single { .. } => None,
-            Expectation::Have { expr, .. } => {
+            Self::Single { .. } => None,
+            Self::Have { expr, .. } => {
                 ("have".to_string(), expr.to_token_stream().to_string()).into()
             }
-            Expectation::Make { expr, .. } => {
+            Self::Make { expr, .. } => {
                 ("make".to_string(), expr.to_token_stream().to_string()).into()
             }
-            Expectation::Change { expr, .. } => {
+            Self::Change { expr, .. } => {
                 ("change".to_string(), expr.to_token_stream().to_string()).into()
             }
-            Expectation::NotChange { expr, .. } => {
+            Self::NotChange { expr, .. } => {
                 ("not change".to_string(), expr.to_token_stream().to_string()).into()
             }
         }
@@ -322,8 +330,14 @@ impl Expectation {
 
     pub fn dependencies(&self) -> HashSet<Ident> {
         match self {
-            Expectation::Single { assertion } => expr_dependencies(assertion),
-            Expectation::Have {
+            Self::Single { assertion } => expr_dependencies(assertion),
+            Self::Have {
+                expr, assertions, ..
+            }
+            | Self::Make {
+                expr, assertions, ..
+            }
+            | Self::Change {
                 expr, assertions, ..
             } => {
                 let mut dependencies = expr_dependencies(expr);
@@ -332,25 +346,7 @@ impl Expectation {
                 }
                 dependencies
             }
-            Expectation::Make {
-                expr, assertions, ..
-            } => {
-                let mut dependencies = expr_dependencies(expr);
-                for assertion in assertions {
-                    dependencies.extend(expr_dependencies(assertion));
-                }
-                dependencies
-            }
-            Expectation::Change {
-                expr, assertions, ..
-            } => {
-                let mut dependencies = expr_dependencies(expr);
-                for assertion in assertions {
-                    dependencies.extend(expr_dependencies(assertion));
-                }
-                dependencies
-            }
-            Expectation::NotChange { expr, .. } => expr_dependencies(expr),
+            Self::NotChange { expr, .. } => expr_dependencies(expr),
         }
     }
 }
@@ -372,7 +368,7 @@ impl Parse for Expectation {
 
             let assertions = parse_assertions(input)?;
 
-            Ok(Expectation::Have {
+            Ok(Self::Have {
                 keyword,
                 mutable,
                 expr,
@@ -383,7 +379,7 @@ impl Parse for Expectation {
             let (mutable, expr) = parse_expr_with_mutable(input)?;
             let assertions = parse_assertions(input)?;
 
-            Ok(Expectation::Make {
+            Ok(Self::Make {
                 keyword,
                 mutable,
                 expr,
@@ -394,7 +390,7 @@ impl Parse for Expectation {
             let expr = parse_expr(input)?;
             let assertions = parse_assertions(input)?;
 
-            Ok(Expectation::Change {
+            Ok(Self::Change {
                 keyword,
                 expr,
                 assertions,
@@ -403,11 +399,11 @@ impl Parse for Expectation {
             let keyword = input.parse::<keyword::not_change>()?;
             let expr = parse_expr(input)?;
 
-            Ok(Expectation::NotChange { keyword, expr })
+            Ok(Self::NotChange { keyword, expr })
         } else {
             let assertion = input.parse::<Expr>()?;
 
-            Ok(Expectation::Single { assertion })
+            Ok(Self::Single { assertion })
         }
     }
 }

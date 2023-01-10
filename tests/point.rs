@@ -1,6 +1,6 @@
 use std::{fmt::Debug, fmt::Display, ops::Add};
 
-#[derive(PartialEq)]
+#[derive(Clone, PartialEq)]
 pub struct Point {
     pub x: i32,
     pub y: i32,

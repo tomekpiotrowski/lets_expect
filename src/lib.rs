@@ -14,7 +14,41 @@
 //! # tests::expect_a_plus_two::when_a_is_two::to_equal_four().unwrap();
 //! ```
 //!
-//! # Why do I need this? Isn't libtest already good enough?
+//! # Table of Contents
+//!
+//! 1. [Introduction](#introduction)
+//! 2. [Installation](#installation)
+//! 3. [Usage](#usage)
+//!     * [How does it work?](#how-does-it-work)
+//!     * [Where to put my tests?](#where-to-put-my-tests)
+//!     * [`expect` and `to`](#expect-and-to)
+//!     * [`let`](#let)
+//!     * [`when`](#when)
+//!     * [`have`](#have)
+//!     * [`make`](#make)
+//!     * [`change`](#change)
+//!     * [`before` and `after`](#before-and-after)
+//!     * [Explicit identifiers for `expect` and `when`](#explicit-identifiers-for-expect-and-when)
+//!     * [Stories](#stories)
+//!     * [Mutable variables and references](#mutable-variables-and-references)
+//! 4. [Assertions](#assertions)
+//!     * [`bool`](#bool)
+//!     * [`equality`](#equality)
+//!     * [Numbers](#numbers)
+//!     * [`match_pattern!`](#match_pattern)
+//!     * [`Option` and `Result`](#option_and_result)
+//!     * [`panic`](#panic)
+//!     * [Iterators](#iterators)
+//!     * [Custom assertions](#custom-assertions)
+//!     * [Custom `change` assertions](#custom-change-assertions)
+//!     * [Assertions module](#assertions-module)
+//! 5. [Supported libraries](#supported-libraries)
+//!     * [Tokio](#tokio)
+//! 6. [More examples](#more-examples)
+//! 7. [Debugging](#debugging)
+//! 8. [License](#license)
+//!
+//! ## Introduction
 //!
 //! How often when you see a Rust test you think to yourself "wow, this is a really beautifully written test"? Not often, right?
 //! Classic Rust tests do not provide any structure beyond the test function itself. This often results in a lot of boilerplate code, ad-hoc test structure and overall
@@ -33,7 +67,7 @@
 //! * nicer error messages
 //! * more fun
 //!
-//! # Non-trivial example
+//! ### Example
 //!
 //! ```
 //! # mod tests {
@@ -186,7 +220,7 @@
 //! # // returns_an_error_when_title_is_empty();
 //! ```
 //!
-//! # Installation
+//! ## Installation
 //!
 //! Add the following to your `Cargo.toml`:
 //!
@@ -195,30 +229,17 @@
 //! lets_expect = "0"
 //! ```
 //!
-//! # Guide
+//! ## Usage
 //!
-//! ## How does Let's Expect work?
+//! ### How does it work?
 //!
 //! Under the hood `lets_expect` generates a single classic test function for each `to` block. It names those tests automatically based on what you're testing and
 //! organizes those tests into modules. This means you can run those tests using `cargo test` and you can use all `cargo test` features. IDE extensions will
 //! also work as expected.
 //!
-//! `cargo test` output might look like this:
+//! ### Where to put my tests?
 //!
-//! ```text
-//! running 5 tests
-//! test tests::expect_a_plus_b_plus_c::when_a_is_two::when_b_is_one_c_is_one::to_equal_4 ... ok
-//! test tests::expect_a_plus_b_plus_c::when_c_is_three::expect_two_plus_c_plus_ten::to_equal_fifteen ... ok
-//! test tests::expect_a_plus_b_plus_c::when_a_is_three_b_is_three_c_is_three::to_equal_nine ... ok
-//! test tests::expect_a_plus_b_plus_c::when_all_numbers_are_negative::to_equal_neg_six ... ok
-//! test tests::expect_array::when_array_is_one_two_three::to_equal_one_two_three ... ok
-//!
-//! test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
-//! ```
-//!
-//! ## Where to put my tests?
-//!
-//! Let's Expect tests need to be placed inside of a `lets_expect!` macro, which in turn needs to be placed inside of a `tests` module:
+//! `lets_expect` tests need to be placed inside of a `lets_expect!` macro, which in turn needs to be placed inside of a `tests` module:
 //!
 //! ```
 //! #[cfg(test)]
@@ -238,7 +259,7 @@
 //!
 //! The examples here omit the macro for brevity.
 //!
-//! ## `expect` and `to`
+//! ### `expect` and `to`
 //!
 //! `expect` sets the subject of the test. It can be any Rust expression (including a block). `to` introduces expectations. It can be followed
 //! by a single expectation or a block of expectations. In the latter case you must provide a name for the test, which needs to be a valid Rust identifier.
@@ -321,7 +342,7 @@
 //! ```
 //!
 //!
-//! ## `let`
+//! ### `let`
 //!
 //! Inside the top level `lets_expect!` macro as well as `expect` and `when` blocks you can use `let` to define variables.
 //!
@@ -380,7 +401,7 @@
 //! # tests::expect_sum::when_b_is_three::to_equal_five().unwrap();
 //! ```
 //!
-//! ## `when`
+//! ### `when`
 //!
 //! `when` sets a value of one or more variables for a given block. This keyword is this library's secret sauce. It allows you to define values of variables
 //! for multiples tests in a concise and readable way, without having to repeat it in every test.
@@ -458,7 +479,21 @@
 //! # tests::expect_a_plus_two::when_a_is_two::to_equal_four().unwrap();
 //! ```
 //!
-//! ## `have`
+//! `when` blocks do not have to be placed inside of `expect` blocks. Their order can be reversed.
+//!
+//! ```
+//! # mod tests {
+//! # use lets_expect::lets_expect;
+//! # lets_expect! { #method
+//! when(a = 2) {
+//!   expect(a + 2) to equal(4)
+//! }
+//! # }
+//! # }
+//! # tests::when_a_is_two::expect_a_plus_two::to_equal_four().unwrap();
+//! ```
+//!
+//! ### `have`
 //!
 //! `have` is used to test values of attributes or return values of methods of the subject.
 //!
@@ -483,7 +518,7 @@
 //!
 //! Multiple assertions can be provided to `have` by wrapping them in curly braces and separating them with commas.
 //!
-//! ## `make`
+//! ### `make`
 //!
 //! `make` is used to test values of arbitrary expressions.
 //!
@@ -505,7 +540,7 @@
 //!
 //! Multiple assertions can be provided to `make` by wrapping them in curly braces and separating them with commas.
 //!
-//! ## `change`
+//! ### `change`
 //!
 //! `change` is used to test if and how a value changes after subject is executed. The expression given as an argument to `change` is evaluated twice. Once before the subject is executed and once after.
 //! The two values are then provided to the assertions specified in the `change` block.
@@ -566,7 +601,222 @@
 //! # tests::expect_posts_create_post_title_category_id::when_title_is_valid_title::when_category_id_is_invalid_category::to_not_change_posts_len().unwrap();
 //! ```
 //!
-//! ## `match_pattern!`
+//! ### `before` and `after`
+//!
+//! The contents of the `before` blocks are executed before the subject is evaluated, but after the `let` bindings are executed. The contents of the `after` blocks are executed
+//! after the subject is evaluated and the assertions are verified.
+//!
+//! `before` blocks are run in the order they are defined. Parent `before` blocks being run before child `before` blocks. The reverse is true for `after` blocks.
+//! `after` blocks are guaranteed to run even if assertions fail. They however will not run if the let statements, before blocks, subject evaluation or assertions panic.
+//!
+//! ```
+//! # mod tests {
+//! # use lets_expect::*;
+//! # lets_expect! { #method
+//! let mut messages: Vec<&str> = Vec::new();
+//! before {
+//!     messages.push("first message");
+//! }
+//! after {
+//!     messages.clear();
+//! }
+//! expect(messages.len()) { to equal(1) }
+//! expect(messages.push("new message")) {
+//!     to change(messages.len()) { from(1), to(2) }
+//! }
+//! # }
+//! # }
+//! # tests::expect_messages_len::to_equal_one().unwrap();
+//! # tests::expect_messages_push_string::to_change_messages_len_from_one().unwrap();
+//! ```
+//!
+//! ### Explicit identifiers for `expect` and `when`
+//!
+//! Because `lets_expect` uses standard Rust tests under the hood it has to come up with a unique identifier for each test. To make those identifiers
+//! readable `lets_expect` uses the expressions in `expect` and `when` to generate the name. This works well for simple expressions but can get a bit
+//! messy for more complex expressions. Sometimes it can also result in duplicated names. To solve those issues you can use the `as` keyword to give
+//! the test an explicit name:
+//!
+//! ```
+//! # mod tests {
+//! # use lets_expect::*;
+//! # lets_expect! { #method
+//! expect(a + b + c) as sum_of_three {
+//!     when(a = 1, b = 1, c = 1) as everything_is_one to equal(3)
+//! }
+//! # }
+//! # }
+//! # tests::expect_sum_of_three::when_everything_is_one::to_equal_three().unwrap();
+//! ```
+//!
+//! This will create a test_named:
+//! ```text
+//! expect_sum_of_three::when_everything_is_one::to_equal_three
+//! ```
+//!
+//! instead of
+//!
+//! ```text
+//! expect_a_plus_b_plus_c::when_a_is_one_b_is_one_c_is_one::to_equal_three
+//! ```
+//!
+//! ### Stories
+//!
+//! `lets_expect` promotes tests that only test one piece of code at a time. Up until this point all the test we've seen define a subject, run that subject and
+//! verify the result. However there can be situations where we want to run and test multiple pieces of code in sequence. This could be for example because executing a piece
+//! of code might be time consuming and we want to avoid doing it multiple times in multiple tests.
+//!
+//! To address this `lets_expect` provides the `story` keyword. Stories are a bit more similar to classic tests in that they allow
+//! arbitrary statements to be interleaved with assertions.
+//!
+//! Please note that the `expect` keyword inside stories has to be followed by `to` and can't open a block.
+//!
+//! ```
+//! # mod tests {
+//! # use lets_expect::*;
+//! # struct User {
+//! #     name: String,
+//! #     password: String
+//! # }
+//! #
+//! # #[derive(Clone, Debug, PartialEq, Eq)]
+//! # struct AuthenticationError {
+//! #     message: String
+//! # }
+//! #
+//! # struct Page {
+//! #     pub logged_in: bool,
+//! # }
+//! #
+//! # impl Page {
+//! #     pub fn new() -> Self {
+//! #         Self { logged_in: false }
+//! #     }
+//! #     pub fn login(&mut self, user: &User) -> Result<(), AuthenticationError> {
+//! #         if user.name == "valid_name" && user.password == "valid_password" {
+//! #             self.logged_in = true;
+//! #             Ok(())
+//! #         } else {
+//! #             Err(AuthenticationError { message: "Invalid credentials".to_string() })
+//! #         }
+//! #     }
+//! # }
+//! # lets_expect! { #method
+//! # let mut page = Page::new();
+//! #
+//! # let invalid_user = User {
+//! #     name: "invalid".to_string(),
+//! #     password: "invalid".to_string()
+//! # };
+//! # let valid_user = User {
+//! #     name: "valid_name".to_string(),
+//! #     password: "valid_password".to_string()
+//! # };
+//! #
+//! story login_is_successful {
+//!     expect(page.logged_in) to be_false
+//!
+//!     let login_result = page.login(&invalid_user);
+//!
+//!     expect(&login_result) to be_err
+//!     expect(&login_result) to equal(Err(AuthenticationError { message: "Invalid credentials".to_string() }))
+//!     expect(page.logged_in) to be_false
+//!
+//!     let login_result = page.login(&valid_user);
+//!
+//!     expect(login_result) to be_ok
+//!     expect(page.logged_in) to be_true
+//! }
+//! # }
+//! # }
+//! # tests::login_is_successful().unwrap();
+//! ```
+//!
+//! >
+//! > **NOTE:**  For now `expect` blocks can't be placed inside of loops or closures. They need to be top-level items in a story.
+//! >
+//!
+//! ### Mutable variables and references
+//!
+//! For some tests you may need to make the tested value mutable or you may need to pass a mutable reference to the assertions. In `expect`, `have` and `make` you can
+//! use the `mut` keyword to do that.
+//!
+//! ```
+//! # mod tests {
+//! # use lets_expect::*;
+//! # lets_expect! { #method
+//! expect(mut vec![1, 2, 3]) { // make the subject mutable
+//!     to have(remove(1)) equal(2)
+//! }
+//!
+//! expect(mut vec.iter()) { // pass a mutable reference to the iterator to the assertion
+//!     let vec = vec![1, 2, 3];
+//!     to all(be_greater_than(0))
+//! }
+//!
+//! expect(vec![1, 2, 3]) {
+//!     to have(mut iter()) all(be_greater_than(0)) // pass a mutable reference to the iterator to the assertion
+//! }
+//! # }
+//! # }
+//! # tests::expect_vec::to_have_mut_iter_all_be_greater_than_zero().unwrap();
+//! # tests::expect_mut_vec_iter::to_all_be_greater_than_zero().unwrap();
+//! # tests::expect_mut_vec::to_have_remove_one_equal_two().unwrap();
+//! ```
+//!
+//! `let` and `when` statements also support `mut`.
+//!
+//!
+//! ## Assertions
+//!
+//! ### `bool`
+//!
+//! ```
+//! # mod tests {
+//! # use lets_expect::*;
+//! # lets_expect! { #method
+//! expect(2 == 2) to be_true
+//! expect(2 != 2) to be_false
+//! # }
+//! # }
+//! # tests::expect_two_equals_two::to_be_true().unwrap();
+//! # tests::expect_two_not_equal_two::to_be_false().unwrap();
+//! ```
+//!
+//! ### `equality`
+//!
+//! ```
+//! # mod tests {
+//! # use lets_expect::*;
+//! # lets_expect! { #method
+//! expect(2) to be_actually_two {
+//!   equal(2),
+//!   not_equal(3)
+//! }
+//! # }
+//! # }
+//! # tests::expect_two::to_be_actually_two().unwrap();
+//! ```
+//!
+//! ### Numbers
+//!
+//! ```
+//! # mod tests {
+//! # use lets_expect::*;
+//! # lets_expect! { #method
+//! expect(2.1) {
+//!    to be_close_to(2.0, 0.2)
+//!    to be_greater_than(2.0)
+//!    to be_less_or_equal_to(2.1)
+//! }
+//! # }
+//! # }
+//! # tests::expect_two_point_ten::to_be_close_to_two_point_zero_zero_point_twenty().unwrap();
+//! # tests::expect_two_point_ten::to_be_greater_than_two_point_zero().unwrap();
+//! # tests::expect_two_point_ten::to_be_less_or_equal_to_two_point_ten().unwrap();
+//! ```
+//!
+//! ### `match_pattern!`
 //!
 //! `match_pattern!` is used to test if a value matches a pattern. It's functionality is similar to [`matches!`](https://doc.rust-lang.org/std/macro.matches.html) macro.
 //!
@@ -595,9 +845,9 @@
 //! # tests::expect_response_validationfailed_string::to_match_email().unwrap();
 //! ```
 //!
-//! ## `Option` and `Result`
+//! ### `Option` and `Result`
 //!
-//! Let's Expect provides a set of assertions for `Option` and `Result` types.
+//! `lets_expect` provides a set of assertions for `Option` and `Result` types.
 //!
 //! ```
 //! # mod tests {
@@ -632,9 +882,66 @@
 //! # tests::expect_err__as_result::to_be_err().unwrap();
 //! ```
 //!
-//! ## Custom assertions
+//! ### `panic!`
 //!
-//! Let's Expect provides a way to define custom assertions. An assertion is a function that takes the reference to the
+//! ```
+//! # mod tests {
+//! # use lets_expect::*;
+//! # struct IPanic {
+//! #     pub should_panic: bool,
+//! # }
+//! # impl IPanic {
+//! #     pub fn new() -> Self {
+//! #         Self {
+//! #             should_panic: false,
+//! #         }
+//! #     }
+//! #     pub fn panic_if_should(&self) {
+//! #         if self.should_panic {
+//! #             panic!();
+//! #         }
+//! #     }
+//! # }
+//! # lets_expect! { #method
+//! expect(panic!("I panicked!")) {
+//!     to panic
+//! }
+//!
+//! expect(2) {
+//!     to not_panic
+//! }
+//!
+//! expect(i_panic.should_panic = true) {
+//!     let mut i_panic = IPanic::new();
+//!     to change(i_panic.panic_if_should()) { from_not_panic, to_panic }
+//! }
+//! # }
+//! # }
+//! # tests::expect_panic::to_panic().unwrap();
+//! # tests::expect_two::to_not_panic().unwrap();
+//! # tests::expect_i_panic_should_panic_is_true::to_change_i_panic_panic_if_should_from_not_panic().unwrap();
+//! ```
+//!
+//!
+//! ### Iterators
+//!
+//! ```
+//! # mod tests {
+//! # use lets_expect::*;
+//! # lets_expect! { #method
+//! expect(vec![1, 2, 3]) {
+//!    to have(mut iter()) all(be_greater_than(0))
+//!    to have(mut iter()) any(be_greater_than(2))
+//! }
+//! # }
+//! # }
+//! # tests::expect_vec::to_have_mut_iter_all_be_greater_than_zero().unwrap();
+//! # tests::expect_vec::to_have_mut_iter_any_be_greater_than_two().unwrap();
+//! ```
+//!
+//! ### Custom assertions
+//!
+//! `lets_expect` provides a way to define custom assertions. An assertion is a function that takes the reference to the
 //! subject and returns an [`AssertionResult`](../lets_expect_core/assertions/assertion_result/index.html).
 //!
 //! Here's two custom assertions:
@@ -718,7 +1025,7 @@
 //!
 //! Remember to import your custom assertions in your test module.
 //!
-//! ## Custom change assertions
+//! ### Custom change assertions
 //!
 //! Similarly custom change assertions can be defined:
 //!
@@ -773,246 +1080,20 @@
 //! # tests::expect_a_multiply_equal_five::to_change_a_clone_by_multiplying_by_five().unwrap();
 //! ```
 //!
-//! ## `before` and `after`
+//! ### Assertions
 //!
-//! The contents of the `before` blocks are executed before the subject is evaluated, but after the `let` bindings are executed. The contents of the `after` blocks are executed
-//! after the subject is evaluated and the assertions are verified.
+//! This library has fairly few builtin assertions compared to other similar ones. This is because the use of `have`, `make` and `match_pattern!` allows for
+//! expressive and flexible conditions without the need for a lot of different assertions.
 //!
-//! `before` blocks are run in the order they are defined. Parent `before` blocks being run before child `before` blocks. The reverse is true for `after` blocks.
-//! `after` blocks are guaranteed to run even if assertions fail. They however will not run if the let statements, before blocks, subject evaluation or assertions panic.
+//! The full list of assertions is available in the [assertions module](https://docs.rs/lets_expect_assertions).
 //!
-//! ```
-//! # mod tests {
-//! # use lets_expect::*;
-//! # lets_expect! { #method
-//! let mut messages: Vec<&str> = Vec::new();
-//! before {
-//!     messages.push("first message");
-//! }
-//! after {
-//!     messages.clear();
-//! }
-//! expect(messages.len()) { to equal(1) }
-//! expect(messages.push("new message")) {
-//!     to change(messages.len()) { from(1), to(2) }
-//! }
-//! # }
-//! # }
-//! # tests::expect_messages_len::to_equal_one().unwrap();
-//! # tests::expect_messages_push_string::to_change_messages_len_from_one().unwrap();
-//! ```
 //!
-//! ## `panic!`
 //!
-//! ```
-//! # mod tests {
-//! # use lets_expect::*;
-//! # struct IPanic {
-//! #     pub should_panic: bool,
-//! # }
-//! # impl IPanic {
-//! #     pub fn new() -> Self {
-//! #         Self {
-//! #             should_panic: false,
-//! #         }
-//! #     }
-//! #     pub fn panic_if_should(&self) {
-//! #         if self.should_panic {
-//! #             panic!();
-//! #         }
-//! #     }
-//! # }
-//! # lets_expect! { #method
-//! expect(panic!("I panicked!")) {
-//!     to panic
-//! }
-//!
-//! expect(2) {
-//!     to not_panic
-//! }
-//!
-//! expect(i_panic.should_panic = true) {
-//!     let mut i_panic = IPanic::new();
-//!     to change(i_panic.panic_if_should()) { from_not_panic, to_panic }
-//! }
-//! # }
-//! # }
-//! # tests::expect_panic::to_panic().unwrap();
-//! # tests::expect_two::to_not_panic().unwrap();
-//! # tests::expect_i_panic_should_panic_is_true::to_change_i_panic_panic_if_should_from_not_panic().unwrap();
-//! ```
-//!
-//! ## Numbers
-//!
-//! ```
-//! # mod tests {
-//! # use lets_expect::*;
-//! # lets_expect! { #method
-//! expect(2.1) {
-//!    to be_close_to(2.0, 0.2)
-//!    to be_greater_than(2.0)
-//!    to be_less_or_equal_to(2.1)
-//! }
-//! # }
-//! # }
-//! # tests::expect_two_point_ten::to_be_close_to_two_point_zero_zero_point_twenty().unwrap();
-//! # tests::expect_two_point_ten::to_be_greater_than_two_point_zero().unwrap();
-//! # tests::expect_two_point_ten::to_be_less_or_equal_to_two_point_ten().unwrap();
-//! ```
-//!
-//! ## Iterators
-//!
-//! ```
-//! # mod tests {
-//! # use lets_expect::*;
-//! # lets_expect! { #method
-//! expect(vec![1, 2, 3]) {
-//!    to have(mut iter()) all(be_greater_than(0))
-//!    to have(mut iter()) any(be_greater_than(2))
-//! }
-//! # }
-//! # }
-//! # tests::expect_vec::to_have_mut_iter_all_be_greater_than_zero().unwrap();
-//! # tests::expect_vec::to_have_mut_iter_any_be_greater_than_two().unwrap();
-//! ```
-//!
-//! ## Mutable variables and references
-//!
-//! For some tests you may need to make the tested value mutable or you may need to pass a mutable reference to the assertions. In `expect`, `have` and `make` you can
-//! use the `mut` keyword to do that.
-//!
-//! ```
-//! # mod tests {
-//! # use lets_expect::*;
-//! # lets_expect! { #method
-//! expect(mut vec![1, 2, 3]) { // make the subject mutable
-//!     to have(remove(1)) equal(2)
-//! }
-//!
-//! expect(mut vec.iter()) { // pass a mutable reference to the iterator to the assertion
-//!     let vec = vec![1, 2, 3];
-//!     to all(be_greater_than(0))
-//! }
-//!
-//! expect(vec![1, 2, 3]) {
-//!     to have(mut iter()) all(be_greater_than(0)) // pass a mutable reference to the iterator to the assertion
-//! }
-//! # }
-//! # }
-//! # tests::expect_vec::to_have_mut_iter_all_be_greater_than_zero().unwrap();
-//! # tests::expect_mut_vec_iter::to_all_be_greater_than_zero().unwrap();
-//! # tests::expect_mut_vec::to_have_remove_one_equal_two().unwrap();
-//! ```
-//!
-//! `let` and `when` statements also support `mut`.
-//!
-//! ## Explicit identifiers for `expect` and `when`
-//!
-//! Because Let's Expect uses standard Rust tests under the hood it has to come up with a unique identifier for each test. To make those identifiers
-//! readable Let's Expect uses the expressions in `expect` and `when` to generate the name. This works well for simple expressions but can get a bit
-//! messy for more complex expressions. Sometimes it can also result in duplicated names. To solve those issues you can use the `as` keyword to give
-//! the test an explicit name:
-//!
-//! ```
-//! # mod tests {
-//! # use lets_expect::*;
-//! # lets_expect! { #method
-//! expect(a + b + c) as sum_of_three {
-//!     when(a = 1, b = 1, c = 1) as everything_is_one to equal(3)
-//! }
-//! # }
-//! # }
-//! # tests::expect_sum_of_three::when_everything_is_one::to_equal_three().unwrap();
-//! ```
-//!
-//! This will create a test_named:
-//! ```text
-//! expect_sum_of_three::when_everything_is_one::to_equal_three
-//! ```
-//!
-//! instead of
-//!
-//! ```text
-//! expect_a_plus_b_plus_c::when_a_is_one_b_is_one_c_is_one::to_equal_three
-//! ```
-//!
-//! ## Stories
-//!
-//! Let's Expect promotes tests that only test one piece of code at a time. Up until this point all the test we've seen define a subject, run that subject and
-//! verify the result. However there can be situations where we want to run and test multiple pieces of code in sequence. This could be for example because executing a piece
-//! of code might be time consuming and we want to avoid doing it multiple times in multiple tests.
-//!
-//! To address this Let's Expect provides the `story` keyword. Stories are a bit more similar to classic tests in that they allow
-//! arbitrary statements to be interleaved with assertions.
-//!
-//! Please note that the `expect` keyword inside stories has to be followed by `to` and can't open a block.
-//!
-//! ```
-//! # mod tests {
-//! # use lets_expect::*;
-//! # struct User {
-//! #     name: String,
-//! #     password: String
-//! # }
-//! #
-//! # #[derive(Clone, Debug, PartialEq, Eq)]
-//! # struct AuthenticationError {
-//! #     message: String
-//! # }
-//! #
-//! # struct Page {
-//! #     pub logged_in: bool,
-//! # }
-//! #
-//! # impl Page {
-//! #     pub fn new() -> Self {
-//! #         Self { logged_in: false }
-//! #     }
-//! #     pub fn login(&mut self, user: &User) -> Result<(), AuthenticationError> {
-//! #         if user.name == "valid_name" && user.password == "valid_password" {
-//! #             self.logged_in = true;
-//! #             Ok(())
-//! #         } else {
-//! #             Err(AuthenticationError { message: "Invalid credentials".to_string() })
-//! #         }
-//! #     }
-//! # }
-//! # lets_expect! { #method
-//! # let mut page = Page::new();
-//! #
-//! # let invalid_user = User {
-//! #     name: "invalid".to_string(),
-//! #     password: "invalid".to_string()
-//! # };
-//! # let valid_user = User {
-//! #     name: "valid_name".to_string(),
-//! #     password: "valid_password".to_string()
-//! # };
-//! #
-//! story login_is_successful {
-//!     expect(page.logged_in) to be_false
-//!
-//!     let login_result = page.login(&invalid_user);
-//!
-//!     expect(&login_result) to be_err
-//!     expect(&login_result) to equal(Err(AuthenticationError { message: "Invalid credentials".to_string() }))
-//!     expect(page.logged_in) to be_false
-//!
-//!     let login_result = page.login(&valid_user);
-//!
-//!     expect(login_result) to be_ok
-//!     expect(page.logged_in) to be_true
-//! }
-//! # }
-//! # }
-//! # tests::login_is_successful().unwrap();
-//! ```
-//!
-//! ## Supported 3rd party libraries
+//! ## Supported libraries
 //!
 //! ### Tokio
 //!
-//! Let's Expect works with [Tokio](https://tokio.rs/). To use Tokio in your tests you need to add the `tokio` feature in your `Cargo.toml`:
+//! `lets_expect` works with [Tokio](https://tokio.rs/). To use Tokio in your tests you need to add the `tokio` feature in your `Cargo.toml`:
 //!
 //! ```toml
 //! lets_expect = { version = "*", features = ["tokio"] }
@@ -1026,7 +1107,7 @@
 //! }
 //! ```
 //!
-//! This will make Let's Expect use `#[tokio::test]` instead of `#[test]` in generated tests.
+//! This will make `lets_expect` use `#[tokio::test]` instead of `#[test]` in generated tests.
 //!
 //! Here's an example of a test using Tokio:
 //!
@@ -1047,26 +1128,35 @@
 //! # tokio_test::block_on(async { tests::expect_await_spawned::to_match_pattern().await.unwrap() });
 //! ```
 //!
-//! # Assertions
 //!
-//! This library has fairly few builtin assertions compared to other similar ones. This is because the use of `have`, `make` and `match_pattern!` allows for a
-//! expressive and flexible conditions without the need for a lot of different assertions.
+//! ## More examples
 //!
-//! The full list of assertions is available in the [assertions module](../lets_expect_assertions/index.html).
-//!
-//! # Examples
-//!
-//! Let's expect repository contains tests that might be useful as examples of using the library.
+//! `lets_expect` repository contains tests that might be useful as examples of using the library.
 //! You can find them [here](https://github.com/tomekpiotrowski/lets_expect/tree/main/tests).
 //!
-//! # Debugging
+//! ## Debugging
 //!
-//! If you're having trouble with your tests you can use [cargo-expand](https://github.com/dtolnay/cargo-expand) to see what code is generated by Let's Expect.
+//! If you're having trouble with your tests you can use [cargo-expand](https://github.com/dtolnay/cargo-expand) to see what code is generated by `lets_expect`.
 //! The generated code is not always easy to read and is not guaranteed to be stable between versions. Still it can be useful for debugging.
 //!
-//! # License
+//! ## License
 //!
 //! This project is licensed under the terms of the MIT license.
+//!
+
+#![warn(
+    clippy::use_self,
+    clippy::cognitive_complexity,
+    clippy::cloned_instead_of_copied,
+    clippy::derive_partial_eq_without_eq,
+    clippy::equatable_if_let,
+    clippy::explicit_into_iter_loop,
+    clippy::format_push_string,
+    clippy::get_unwrap,
+    clippy::match_same_arms,
+    clippy::needless_for_each,
+    clippy::todo
+)]
 
 pub use std::panic;
 

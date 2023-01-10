@@ -50,7 +50,7 @@ impl Parse for Expect {
             Context::from_single_item(input)?
         };
 
-        Ok(Expect {
+        Ok(Self {
             context,
             subject_identifier,
             mutable,

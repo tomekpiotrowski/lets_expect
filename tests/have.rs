@@ -16,7 +16,7 @@ mod tests {
             }
 
             to access_the_same_value_twice {
-                have(start) equal(Point { x: 0, y: 0 }),
+                have(start.clone()) equal(Point { x: 0, y: 0 }),
                 have(start) equal(Point { x: 0, y: 0 })
             }
         }

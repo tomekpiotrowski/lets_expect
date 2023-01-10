@@ -17,7 +17,7 @@ mod tests {
             }
 
             to have(mut iter()) all(be_greater_than(0))
-            to have(iter().next()) equal(Some(&1))
+            to have(first()) equal(Some(&1))
         }
 
         expect(mut vec![1, 2, 3]) {

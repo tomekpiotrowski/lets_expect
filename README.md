@@ -16,7 +16,41 @@ expect(a + 2) {
 }
 ```
 
-## Why do I need this? Isn't libtest already good enough?
+## Table of Contents
+
+1. [Introduction](#introduction)
+2. [Installation](#installation)
+3. [Usage](#usage)
+    * [How does it work?](#how-does-it-work)
+    * [Where to put my tests?](#where-to-put-my-tests)
+    * [`expect` and `to`](#expect-and-to)
+    * [`let`](#let)
+    * [`when`](#when)
+    * [`have`](#have)
+    * [`make`](#make)
+    * [`change`](#change)
+    * [`before` and `after`](#before-and-after)
+    * [Explicit identifiers for `expect` and `when`](#explicit-identifiers-for-expect-and-when)
+    * [Stories](#stories)
+    * [Mutable variables and references](#mutable-variables-and-references)
+4. [Assertions](#assertions)
+    * [`bool`](#bool)
+    * [`equality`](#equality)
+    * [Numbers](#numbers)
+    * [`match_pattern!`](#match_pattern)
+    * [`Option` and `Result`](#option_and_result)
+    * [`panic`](#panic)
+    * [Iterators](#iterators)
+    * [Custom assertions](#custom-assertions)
+    * [Custom `change` assertions](#custom-change-assertions)
+    * [Assertions module](#assertions-module)
+5. [Supported libraries](#supported-libraries)
+    * [Tokio](#tokio)
+6. [More examples](#more-examples)
+7. [Debugging](#debugging)
+8. [License](#license)
+
+### Introduction
 
 How often when you see a Rust test you think to yourself "wow, this is a really beautifully written test"? Not often, right?
 Classic Rust tests do not provide any structure beyond the test function itself. This often results in a lot of boilerplate code, ad-hoc test structure and overall
@@ -35,7 +69,7 @@ The outcome is:
 * nicer error messages
 * more fun
 
-## Non-trivial example
+#### Example
 
 ```rust
 expect(posts.create_post(title, category_id)) {
@@ -112,7 +146,7 @@ fn returns_an_error_when_title_is_empty() {
 
 ```
 
-## Installation
+### Installation
 
 Add the following to your `Cargo.toml`:
 
@@ -121,30 +155,17 @@ Add the following to your `Cargo.toml`:
 lets_expect = "0"
 ```
 
-## Guide
+### Usage
 
-### How does Let's Expect work?
+#### How does it work?
 
 Under the hood `lets_expect` generates a single classic test function for each `to` block. It names those tests automatically based on what you're testing and
 organizes those tests into modules. This means you can run those tests using `cargo test` and you can use all `cargo test` features. IDE extensions will
 also work as expected.
 
-`cargo test` output might look like this:
+#### Where to put my tests?
 
-```text
-running 5 tests
-test tests::expect_a_plus_b_plus_c::when_a_is_two::when_b_is_one_c_is_one::to_equal_4 ... ok
-test tests::expect_a_plus_b_plus_c::when_c_is_three::expect_two_plus_c_plus_ten::to_equal_fifteen ... ok
-test tests::expect_a_plus_b_plus_c::when_a_is_three_b_is_three_c_is_three::to_equal_nine ... ok
-test tests::expect_a_plus_b_plus_c::when_all_numbers_are_negative::to_equal_neg_six ... ok
-test tests::expect_array::when_array_is_one_two_three::to_equal_one_two_three ... ok
-
-test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
-```
-
-### Where to put my tests?
-
-Let's Expect tests need to be placed inside of a `lets_expect!` macro, which in turn needs to be placed inside of a `tests` module:
+`lets_expect` tests need to be placed inside of a `lets_expect!` macro, which in turn needs to be placed inside of a `tests` module:
 
 ```rust
 #[cfg(test)]
@@ -164,7 +185,7 @@ It might be a good idea to define a code snippet in your IDE to avoid having to 
 
 The examples here omit the macro for brevity.
 
-### `expect` and `to`
+#### `expect` and `to`
 
 `expect` sets the subject of the test. It can be any Rust expression (including a block). `to` introduces expectations. It can be followed
 by a single expectation or a block of expectations. In the latter case you must provide a name for the test, which needs to be a valid Rust identifier.
@@ -205,7 +226,7 @@ expect(a + 2) when(a = 2) {
 ```
 
 
-### `let`
+#### `let`
 
 Inside the top level `lets_expect!` macro as well as `expect` and `when` blocks you can use `let` to define variables.
 
@@ -246,7 +267,7 @@ expect(sum) {
 }
 ```
 
-### `when`
+#### `when`
 
 `when` sets a value of one or more variables for a given block. This keyword is this library's secret sauce. It allows you to define values of variables
 for multiples tests in a concise and readable way, without having to repeat it in every test.
@@ -296,7 +317,15 @@ If your `when` contains only one item the braces can be ommited:
 expect(a + 2) when(a = 2) to equal(4)
 ```
 
-### `have`
+`when` blocks do not have to be placed inside of `expect` blocks. Their order can be reversed.
+
+```rust
+when(a = 2) {
+  expect(a + 2) to equal(4)
+}
+```
+
+#### `have`
 
 `have` is used to test values of attributes or return values of methods of the subject.
 
@@ -313,7 +342,7 @@ expect(response) {
 
 Multiple assertions can be provided to `have` by wrapping them in curly braces and separating them with commas.
 
-### `make`
+#### `make`
 
 `make` is used to test values of arbitrary expressions.
 
@@ -327,7 +356,7 @@ expect(posts.push((user_id, "new post"))) {
 
 Multiple assertions can be provided to `make` by wrapping them in curly braces and separating them with commas.
 
-### `change`
+#### `change`
 
 `change` is used to test if and how a value changes after subject is executed. The expression given as an argument to `change` is evaluated twice. Once before the subject is executed and once after.
 The two values are then provided to the assertions specified in the `change` block.
@@ -348,7 +377,136 @@ expect(posts.create_post(title, category_id)) {
 }
 ```
 
-### `match_pattern!`
+#### `before` and `after`
+
+The contents of the `before` blocks are executed before the subject is evaluated, but after the `let` bindings are executed. The contents of the `after` blocks are executed
+after the subject is evaluated and the assertions are verified.
+
+`before` blocks are run in the order they are defined. Parent `before` blocks being run before child `before` blocks. The reverse is true for `after` blocks.
+`after` blocks are guaranteed to run even if assertions fail. They however will not run if the let statements, before blocks, subject evaluation or assertions panic.
+
+```rust
+let mut messages: Vec<&str> = Vec::new();
+before {
+    messages.push("first message");
+}
+after {
+    messages.clear();
+}
+expect(messages.len()) { to equal(1) }
+expect(messages.push("new message")) {
+    to change(messages.len()) { from(1), to(2) }
+}
+```
+
+#### Explicit identifiers for `expect` and `when`
+
+Because `lets_expect` uses standard Rust tests under the hood it has to come up with a unique identifier for each test. To make those identifiers
+readable `lets_expect` uses the expressions in `expect` and `when` to generate the name. This works well for simple expressions but can get a bit
+messy for more complex expressions. Sometimes it can also result in duplicated names. To solve those issues you can use the `as` keyword to give
+the test an explicit name:
+
+```rust
+expect(a + b + c) as sum_of_three {
+    when(a = 1, b = 1, c = 1) as everything_is_one to equal(3)
+}
+```
+
+This will create a test_named:
+```text
+expect_sum_of_three::when_everything_is_one::to_equal_three
+```
+
+instead of
+
+```text
+expect_a_plus_b_plus_c::when_a_is_one_b_is_one_c_is_one::to_equal_three
+```
+
+#### Stories
+
+`lets_expect` promotes tests that only test one piece of code at a time. Up until this point all the test we've seen define a subject, run that subject and
+verify the result. However there can be situations where we want to run and test multiple pieces of code in sequence. This could be for example because executing a piece
+of code might be time consuming and we want to avoid doing it multiple times in multiple tests.
+
+To address this `lets_expect` provides the `story` keyword. Stories are a bit more similar to classic tests in that they allow
+arbitrary statements to be interleaved with assertions.
+
+Please note that the `expect` keyword inside stories has to be followed by `to` and can't open a block.
+
+```rust
+story login_is_successful {
+    expect(page.logged_in) to be_false
+
+    let login_result = page.login(&invalid_user);
+
+    expect(&login_result) to be_err
+    expect(&login_result) to equal(Err(AuthenticationError { message: "Invalid credentials".to_string() }))
+    expect(page.logged_in) to be_false
+
+    let login_result = page.login(&valid_user);
+
+    expect(login_result) to be_ok
+    expect(page.logged_in) to be_true
+}
+```
+
+>
+> **NOTE:**  For now `expect` blocks can't be placed inside of loops or closures. They need to be top-level items in a story.
+>
+
+#### Mutable variables and references
+
+For some tests you may need to make the tested value mutable or you may need to pass a mutable reference to the assertions. In `expect`, `have` and `make` you can
+use the `mut` keyword to do that.
+
+```rust
+expect(mut vec![1, 2, 3]) { // make the subject mutable
+    to have(remove(1)) equal(2)
+}
+
+expect(mut vec.iter()) { // pass a mutable reference to the iterator to the assertion
+    let vec = vec![1, 2, 3];
+    to all(be_greater_than(0))
+}
+
+expect(vec![1, 2, 3]) {
+    to have(mut iter()) all(be_greater_than(0)) // pass a mutable reference to the iterator to the assertion
+}
+```
+
+`let` and `when` statements also support `mut`.
+
+
+### Assertions
+
+#### `bool`
+
+```rust
+expect(2 == 2) to be_true
+expect(2 != 2) to be_false
+```
+
+#### `equality`
+
+```rust
+expect(2) to be_actually_two {
+  equal(2),
+  not_equal(3)
+}
+```
+
+#### Numbers
+
+```rust
+expect(2.1) {
+   to be_close_to(2.0, 0.2)
+   to be_greater_than(2.0)
+   to be_less_or_equal_to(2.1)
+}
+```
+
+#### `match_pattern!`
 
 `match_pattern!` is used to test if a value matches a pattern. It's functionality is similar to [`matches!`](https://doc.rust-lang.org/std/macro.matches.html) macro.
 
@@ -365,9 +523,9 @@ expect(Response::ValidationFailed("email")) {
 }
 ```
 
-### `Option` and `Result`
+#### `Option` and `Result`
 
-Let's Expect provides a set of assertions for `Option` and `Result` types.
+`lets_expect` provides a set of assertions for `Option` and `Result` types.
 
 ```rust
 expect(Some(1u8) as Option<u8>) {
@@ -393,9 +551,36 @@ expect(Err(()) as Result<String, ()>) {
 }
 ```
 
-### Custom assertions
+#### `panic!`
 
-Let's Expect provides a way to define custom assertions. An assertion is a function that takes the reference to the
+```rust
+expect(panic!("I panicked!")) {
+    to panic
+}
+
+expect(2) {
+    to not_panic
+}
+
+expect(i_panic.should_panic = true) {
+    let mut i_panic = IPanic::new();
+    to change(i_panic.panic_if_should()) { from_not_panic, to_panic }
+}
+```
+
+
+#### Iterators
+
+```rust
+expect(vec![1, 2, 3]) {
+   to have(mut iter()) all(be_greater_than(0))
+   to have(mut iter()) any(be_greater_than(2))
+}
+```
+
+#### Custom assertions
+
+`lets_expect` provides a way to define custom assertions. An assertion is a function that takes the reference to the
 subject and returns an [`AssertionResult`](../lets_expect_core/assertions/assertion_result/index.html).
 
 Here's two custom assertions:
@@ -441,7 +626,7 @@ expect(Point { x: 2, y: 22 }) {
 
 Remember to import your custom assertions in your test module.
 
-### Custom change assertions
+#### Custom change assertions
 
 Similarly custom change assertions can be defined:
 
@@ -475,143 +660,20 @@ expect(a *= 5) {
 }
 ```
 
-### `before` and `after`
+#### Assertions
 
-The contents of the `before` blocks are executed before the subject is evaluated, but after the `let` bindings are executed. The contents of the `after` blocks are executed
-after the subject is evaluated and the assertions are verified.
+This library has fairly few builtin assertions compared to other similar ones. This is because the use of `have`, `make` and `match_pattern!` allows for
+expressive and flexible conditions without the need for a lot of different assertions.
 
-`before` blocks are run in the order they are defined. Parent `before` blocks being run before child `before` blocks. The reverse is true for `after` blocks.
-`after` blocks are guaranteed to run even if assertions fail. They however will not run if the let statements, before blocks, subject evaluation or assertions panic.
+The full list of assertions is available in the [assertions module](https://docs.rs/lets_expect_assertions).
 
-```rust
-let mut messages: Vec<&str> = Vec::new();
-before {
-    messages.push("first message");
-}
-after {
-    messages.clear();
-}
-expect(messages.len()) { to equal(1) }
-expect(messages.push("new message")) {
-    to change(messages.len()) { from(1), to(2) }
-}
-```
 
-### `panic!`
 
-```rust
-expect(panic!("I panicked!")) {
-    to panic
-}
-
-expect(2) {
-    to not_panic
-}
-
-expect(i_panic.should_panic = true) {
-    let mut i_panic = IPanic::new();
-    to change(i_panic.panic_if_should()) { from_not_panic, to_panic }
-}
-```
-
-### Numbers
-
-```rust
-expect(2.1) {
-   to be_close_to(2.0, 0.2)
-   to be_greater_than(2.0)
-   to be_less_or_equal_to(2.1)
-}
-```
-
-### Iterators
-
-```rust
-expect(vec![1, 2, 3]) {
-   to have(mut iter()) all(be_greater_than(0))
-   to have(mut iter()) any(be_greater_than(2))
-}
-```
-
-### Mutable variables and references
-
-For some tests you may need to make the tested value mutable or you may need to pass a mutable reference to the assertions. In `expect`, `have` and `make` you can
-use the `mut` keyword to do that.
-
-```rust
-expect(mut vec![1, 2, 3]) { // make the subject mutable
-    to have(remove(1)) equal(2)
-}
-
-expect(mut vec.iter()) { // pass a mutable reference to the iterator to the assertion
-    let vec = vec![1, 2, 3];
-    to all(be_greater_than(0))
-}
-
-expect(vec![1, 2, 3]) {
-    to have(mut iter()) all(be_greater_than(0)) // pass a mutable reference to the iterator to the assertion
-}
-```
-
-`let` and `when` statements also support `mut`.
-
-### Explicit identifiers for `expect` and `when`
-
-Because Let's Expect uses standard Rust tests under the hood it has to come up with a unique identifier for each test. To make those identifiers
-readable Let's Expect uses the expressions in `expect` and `when` to generate the name. This works well for simple expressions but can get a bit
-messy for more complex expressions. Sometimes it can also result in duplicated names. To solve those issues you can use the `as` keyword to give
-the test an explicit name:
-
-```rust
-expect(a + b + c) as sum_of_three {
-    when(a = 1, b = 1, c = 1) as everything_is_one to equal(3)
-}
-```
-
-This will create a test_named:
-```text
-expect_sum_of_three::when_everything_is_one::to_equal_three
-```
-
-instead of
-
-```text
-expect_a_plus_b_plus_c::when_a_is_one_b_is_one_c_is_one::to_equal_three
-```
-
-### Stories
-
-Let's Expect promotes tests that only test one piece of code at a time. Up until this point all the test we've seen define a subject, run that subject and
-verify the result. However there can be situations where we want to run and test multiple pieces of code in sequence. This could be for example because executing a piece
-of code might be time consuming and we want to avoid doing it multiple times in multiple tests.
-
-To address this Let's Expect provides the `story` keyword. Stories are a bit more similar to classic tests in that they allow
-arbitrary statements to be interleaved with assertions.
-
-Please note that the `expect` keyword inside stories has to be followed by `to` and can't open a block.
-
-```rust
-story login_is_successful {
-    expect(page.logged_in) to be_false
-
-    let login_result = page.login(&invalid_user);
-
-    expect(&login_result) to be_err
-    expect(&login_result) to equal(Err(AuthenticationError { message: "Invalid credentials".to_string() }))
-    expect(page.logged_in) to be_false
-
-    let login_result = page.login(&valid_user);
-
-    expect(login_result) to be_ok
-    expect(page.logged_in) to be_true
-}
-```
-
-### Supported 3rd party libraries
+### Supported libraries
 
 #### Tokio
 
-Let's Expect works with [Tokio](https://tokio.rs/). To use Tokio in your tests you need to add the `tokio` feature in your `Cargo.toml`:
+`lets_expect` works with [Tokio](https://tokio.rs/). To use Tokio in your tests you need to add the `tokio` feature in your `Cargo.toml`:
 
 ```toml
 lets_expect = { version = "*", features = ["tokio"] }
@@ -624,7 +686,7 @@ lets_expect! { #tokio_test
 }
 ```
 
-This will make Let's Expect use `#[tokio::test]` instead of `#[test]` in generated tests.
+This will make `lets_expect` use `#[tokio::test]` instead of `#[test]` in generated tests.
 
 Here's an example of a test using Tokio:
 
@@ -639,24 +701,18 @@ expect(spawned.await) {
 }
 ```
 
-## Assertions
 
-This library has fairly few builtin assertions compared to other similar ones. This is because the use of `have`, `make` and `match_pattern!` allows for a
-expressive and flexible conditions without the need for a lot of different assertions.
+### More examples
 
-The full list of assertions is available in the [assertions module](../lets_expect_assertions/index.html).
-
-## Examples
-
-Let's expect repository contains tests that might be useful as examples of using the library.
+`lets_expect` repository contains tests that might be useful as examples of using the library.
 You can find them [here](https://github.com/tomekpiotrowski/lets_expect/tree/main/tests).
 
-## Debugging
+### Debugging
 
-If you're having trouble with your tests you can use [cargo-expand](https://github.com/dtolnay/cargo-expand) to see what code is generated by Let's Expect.
+If you're having trouble with your tests you can use [cargo-expand](https://github.com/dtolnay/cargo-expand) to see what code is generated by `lets_expect`.
 The generated code is not always easy to read and is not guaranteed to be stable between versions. Still it can be useful for debugging.
 
-## License
+### License
 
 This project is licensed under the terms of the MIT license.
 
