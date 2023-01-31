@@ -15,3 +15,5 @@
 pub mod assertions;
 pub mod core;
 pub mod execution;
+pub mod expectations;
+pub mod utils;

@@ -443,7 +443,7 @@
 //! }
 //! # }
 //! # }
-//! # tests::expect_a_add_equal_one::when_a_is_one::to_change_a_clone_from_one().unwrap();
+//! # tests::expect_a_add_equal_one::when_a_is_one::to_change_a_clone_from_one_and_to_two().unwrap();
 //! ```
 //!
 //! You can also use `when` with an identifier. This will simply create a new context with the given identifier. No new variables are defined.
@@ -501,15 +501,21 @@
 //! ```
 //! # mod tests {
 //! # use lets_expect::lets_expect;
-//! # struct Response { pub status: u16 }
+//! # struct ResponseContent { username: String, token: String }
+//! # impl ResponseContent { pub fn new(username: &str, token: &str) -> Self { Self { username: username.to_string(), token: token.to_string() } } }
+//! # struct Response { pub status: u16, pub content: ResponseContent }
 //! # impl Response { pub fn is_ok(&self) -> bool { self.status == 200 } }
 //! # lets_expect! { #method
-//! let response = Response { status: 200 };
+//! let response = Response { status: 200, content: ResponseContent::new("admin", "123") };
 //!
 //! expect(response) {
 //!     to be_valid {
 //!         have(status) equal(200),
-//!         have(is_ok()) be_true
+//!         have(is_ok()) be_true,
+//!         have(content) {
+//!             have(username) equal("admin".to_string()),
+//!             have(token) equal("123".to_string()),
+//!         }
 //!     }
 //! }
 //! # }
@@ -598,7 +604,7 @@
 //! }
 //! # }
 //! # }
-//! # tests::expect_posts_create_post_title_category_id::when_title_is_valid_title::when_category_id_is_valid_category::to_change_posts_len_from_zero().unwrap();
+//! # tests::expect_posts_create_post_title_category_id::when_title_is_valid_title::when_category_id_is_valid_category::to_change_posts_len_from_zero_and_to_one().unwrap();
 //! # tests::expect_posts_create_post_title_category_id::when_title_is_valid_title::when_category_id_is_invalid_category::to_not_change_posts_len().unwrap();
 //! ```
 //!
@@ -628,7 +634,7 @@
 //! # }
 //! # }
 //! # tests::expect_messages_len::to_equal_one().unwrap();
-//! # tests::expect_messages_push_string::to_change_messages_len_from_one().unwrap();
+//! # tests::expect_messages_push_string::to_change_messages_len_from_one_and_to_two().unwrap();
 //! ```
 //!
 //! ### Explicit identifiers for `expect` and `when`
@@ -888,21 +894,6 @@
 //! ```
 //! # mod tests {
 //! # use lets_expect::*;
-//! # struct IPanic {
-//! #     pub should_panic: bool,
-//! # }
-//! # impl IPanic {
-//! #     pub fn new() -> Self {
-//! #         Self {
-//! #             should_panic: false,
-//! #         }
-//! #     }
-//! #     pub fn panic_if_should(&self) {
-//! #         if self.should_panic {
-//! #             panic!();
-//! #         }
-//! #     }
-//! # }
 //! # lets_expect! { #method
 //! expect(panic!("I panicked!")) {
 //!     to panic
@@ -911,17 +902,13 @@
 //! expect(2) {
 //!     to not_panic
 //! }
-//!
-//! expect(i_panic.should_panic = true) {
-//!     let mut i_panic = IPanic::new();
-//!     to change(i_panic.panic_if_should()) { from_not_panic, to_panic }
-//! }
 //! # }
 //! # }
 //! # tests::expect_panic::to_panic().unwrap();
 //! # tests::expect_two::to_not_panic().unwrap();
-//! # tests::expect_i_panic_should_panic_is_true::to_change_i_panic_panic_if_should_from_not_panic().unwrap();
 //! ```
+//!
+//! `panic` and `not_panic` assertions can be the only assertions present in a `to` block.
 //!
 //!
 //! ### Iterators

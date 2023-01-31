@@ -1,5 +1,6 @@
+use crate::utils::to_ident::expr_to_ident;
+
 use super::{context::Context, create_module::create_module, keyword, runtime::Runtime};
-use crate::core::to_ident::expr_to_ident;
 use proc_macro2::{Ident, TokenStream};
 use syn::{
     braced, parenthesized,

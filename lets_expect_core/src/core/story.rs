@@ -8,7 +8,8 @@ use syn::{
     Ident, Result, Stmt,
 };
 
-use super::expr_dependencies::stmt_dependencies;
+use crate::utils::expr_dependencies::stmt_dependencies;
+
 use super::runtime::Runtime;
 use super::{create_test::create_test, story_expect_to::StoryExpectTo};
 

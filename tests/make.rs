@@ -13,7 +13,7 @@ mod tests {
 
             to have_valid_coordinates {
                 make(point.x) equal(5),
-                make(point.x) { not_equal(1) },
+                make(point.x) { not_equal(4) },
                 make(point.y) { not_equal(1), equal(2) },
                 make(unrelated) equal(5)
             }
@@ -21,8 +21,8 @@ mod tests {
 
         expect(Segment { start: Point { x: 1, y: 2 }, end: Point { x: 3, y: 4 } }) {
             to pass_the_same_make_assertion_twice {
-                make(subject.start.clone()) equal(Point { x: 1, y: 2 }),
-                make(subject.start) equal(Point { x: 1, y: 2 })
+                make(subject_result.start.clone()) equal(Point { x: 1, y: 2 }),
+                make(subject_result.start) equal(Point { x: 1, y: 2 })
             }
         }
     }

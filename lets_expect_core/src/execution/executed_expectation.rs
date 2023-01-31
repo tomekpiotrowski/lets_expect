@@ -1,36 +1,45 @@
-use super::{executed_assertion::ExecutedAssertion, prepend::prepend};
 use colored::Colorize;
 
-#[derive(Debug)]
-pub struct ExecutedExpectation {
-    pub call: Option<(String, String)>,
-    assertions: Vec<ExecutedAssertion>,
+use crate::utils::indent::indent;
+
+use super::executed_assertion::ExecutedAssertion;
+
+pub enum ExecutedExpectation {
+    Single(ExecutedAssertion),
+    Group(String, String, Box<ExecutedExpectation>),
+    Many(Vec<ExecutedExpectation>),
 }
 
 impl ExecutedExpectation {
-    pub fn new(call: Option<(String, String)>, assertions: Vec<ExecutedAssertion>) -> Self {
-        Self { call, assertions }
-    }
-
     pub fn failed(&self) -> bool {
-        self.assertions.iter().any(|assertion| assertion.failed())
+        match self {
+            Self::Single(assertion) => assertion.failed(),
+            Self::Group(_, _, assertion) => assertion.failed(),
+            Self::Many(assertions) => assertions.iter().any(|assertion| assertion.failed()),
+        }
     }
 
     pub fn pretty_print(&self) -> Vec<String> {
-        let assertions = self
-            .assertions
-            .iter()
-            .flat_map(ExecutedAssertion::pretty_print)
-            .collect::<Vec<_>>();
+        match self {
+            Self::Single(assertion) => assertion.pretty_print(),
+            Self::Group(label, arg, assertion) => {
+                let assertion = assertion.pretty_print();
 
-        if let Some(call) = self.call.as_ref() {
-            let call = format!("{} {}", call.0.cyan(), call.1.yellow().bold());
-            let mut assertions = prepend(&assertions, "  ");
-            let mut merged = vec![call];
-            merged.append(&mut assertions);
-            merged
-        } else {
-            assertions
+                if assertion.len() == 1 {
+                    vec![format!(
+                        "{} {} {}",
+                        label.cyan(),
+                        arg.yellow().bold(),
+                        assertion[0]
+                    )]
+                } else {
+                    let assertion = indent(&assertion, 1);
+                    let mut result = vec![format!("{} {}", label.cyan(), arg.yellow().bold())];
+                    result.extend(assertion);
+                    result
+                }
+            }
+            Self::Many(assertions) => assertions.iter().flat_map(Self::pretty_print).collect(),
         }
     }
 }
