@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use proc_macro2::{Ident, Span};
-use quote::{quote, quote_spanned, ToTokens};
+use quote::{quote_spanned, ToTokens};
 use syn::{
     parse::{Parse, ParseStream},
     spanned::Spanned,
@@ -17,7 +17,7 @@ use crate::{
 };
 
 use super::{
-    expectation_tokens::{AssertionTokens, ExpectationTokens},
+    expectation_tokens::{AssertionTokens, ExpectationTokens, GroupAssertionTokens},
     expectation_type::ExpectationType,
     inner::InnerExpectation,
 };
@@ -31,13 +31,13 @@ pub(crate) struct HaveExpectation {
 
 impl HaveExpectation {
     pub fn new(mutable: bool, expression: Expr, inner: Box<InnerExpectation>) -> Self {
-        let call_ident = expr_to_ident(&expression);
+        let expr_ident = expr_to_ident(&expression);
         let mutable_string = if mutable { "mut_" } else { "" };
 
         let identifier = format!(
             "have_{}{}_{}",
             mutable_string,
-            call_ident,
+            expr_ident,
             inner.identifier_string()
         );
 
@@ -60,30 +60,27 @@ impl HaveExpectation {
         &self.identifier
     }
 
-    pub fn tokens(&self, ident_prefix: &str, subject_variable: &str) -> ExpectationTokens {
-        let ident = format!("{}_{}", ident_prefix, self.identifier_string());
-        let inner_tokens = self.inner.tokens(ident_prefix, &ident, self.mutable);
-        let before_subject = inner_tokens.before_subject;
-        let after_subject = inner_tokens.after_subject;
-        let assertions = AssertionTokens::Group(
+    pub fn tokens(&self, ident_prefix: &str) -> ExpectationTokens {
+        let inner_tokens = self.inner.tokens(ident_prefix, self.mutable);
+        let before_subject = inner_tokens.before_subject_evaluation;
+
+        let expr = &self.expression;
+
+        let mutable = mutable_token(self.mutable, &expr.span());
+        let context = quote_spanned! { expr.span() =>
+            let #mutable subject = subject.#expr;
+        };
+
+        let assertions = AssertionTokens::Group(GroupAssertionTokens::new(
             "have".to_string(),
             self.expression.to_token_stream().to_string(),
-            Box::new(inner_tokens.assertions),
-        );
-        let expr = &self.expression;
-        let mutable = mutable_token(self.mutable, &expr.span());
-        let subject_variable_name = Ident::new(subject_variable, expr.span());
-        let result_variable_name = Ident::new(&ident, expr.span());
-        let variable_token_stream = quote_spanned! { expr.span() =>
-            let #mutable #result_variable_name = #subject_variable_name.#expr;
-        };
-        let after_subject = quote! {
-            #variable_token_stream
-            #after_subject
-        };
+            None,
+            Some(context),
+            inner_tokens.assertions,
+        ));
+
         ExpectationTokens {
-            before_subject,
-            after_subject,
+            before_subject_evaluation: before_subject,
             assertions,
         }
     }

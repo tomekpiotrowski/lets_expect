@@ -51,18 +51,11 @@ impl ExpectationType for Expectation {
         }
     }
 
-    fn tokens(
-        &self,
-        ident_prefix: &str,
-        subject_variable: &str,
-        subject_mutable: bool,
-    ) -> ExpectationTokens {
+    fn tokens(&self, ident_prefix: &str, subject_mutable: bool) -> ExpectationTokens {
         match self {
             Self::Panic(expectation) => expectation.tokens(),
             Self::NotPanic(expectation) => expectation.tokens(),
-            Self::Result(expectation) => {
-                expectation.tokens(ident_prefix, subject_variable, subject_mutable)
-            }
+            Self::Result(expectation) => expectation.tokens(ident_prefix, subject_mutable),
         }
     }
 }

@@ -1,3 +1,6 @@
+mod be_err_and;
+mod be_ok_and;
+mod be_some_and;
 mod change;
 mod change_expression;
 mod change_inner;

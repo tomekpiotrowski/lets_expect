@@ -9,7 +9,9 @@ use crate::{
     utils::{expr_dependencies::expr_dependencies, to_ident::expr_to_ident},
 };
 
-use super::expectation_tokens::{AssertionTokens, ExpectationTokens};
+use super::expectation_tokens::{
+    AssertionTokens, ExpectationTokens, GroupAssertionTokens, SingleAssertionTokens,
+};
 
 pub struct NotChangeExpectation {
     identifier_string: String,
@@ -49,29 +51,27 @@ impl NotChangeExpectation {
             let #before_variable_ident = #expr;
         };
 
-        let after_variable_name = format!("{}_after", ident);
-        let after_variable_ident = Ident::new(&after_variable_name, expr.span());
-
-        let after_subject = quote_spanned! { expr.span() =>
-            let #after_variable_ident = #expr;
-        };
-
-        let assertions = AssertionTokens::Single((
+        let assertions = AssertionTokens::Single(SingleAssertionTokens::new(
             "".to_string(),
             quote_spanned! { expr.span() =>
-                equal(#before_variable_ident)(&#after_variable_ident)
+                equal(from_value)(&#expr)
             },
         ));
 
-        let assertions = AssertionTokens::Group(
+        let context = quote_spanned! { self.span() =>
+            let from_value = #before_variable_ident;
+        };
+
+        let assertions = AssertionTokens::Group(GroupAssertionTokens::new(
             "not_change".to_string(),
             self.expression.to_token_stream().to_string(),
-            Box::new(assertions),
-        );
+            None,
+            Some(context),
+            assertions,
+        ));
 
         ExpectationTokens {
-            before_subject,
-            after_subject,
+            before_subject_evaluation: before_subject,
             assertions,
         }
     }

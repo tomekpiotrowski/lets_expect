@@ -8,6 +8,8 @@ mod tests {
                 equal(Ok(1)),
                 be_ok
             }
+
+            to be_ok_and equal(1)
         }
 
         expect(Err(2) as Result<i32, i32>) {
@@ -15,6 +17,8 @@ mod tests {
                 equal(Err(2)),
                 be_err
             }
+
+            to be_err_and equal(2)
         }
     }
 }

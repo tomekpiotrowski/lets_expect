@@ -53,28 +53,20 @@ impl<Expectation: ExpectationType> ExpectationType for ManyExpectation<Expectati
         &self.identifier_string
     }
 
-    fn tokens(
-        &self,
-        ident_prefix: &str,
-        subject_variable: &str,
-        subject_mutable: bool,
-    ) -> ExpectationTokens {
+    fn tokens(&self, ident_prefix: &str, subject_mutable: bool) -> ExpectationTokens {
         let ident = format!("{}_{}", ident_prefix, self.identifier_string());
         let mut before_subject = TokenStream::new();
-        let mut after_subject = TokenStream::new();
         let mut assertions: Vec<AssertionTokens> = Vec::new();
 
         self.inner.iter().for_each(|inner| {
-            let inner_tokens = inner.tokens(&ident, subject_variable, subject_mutable);
+            let inner_tokens = inner.tokens(&ident, subject_mutable);
 
-            before_subject.extend(inner_tokens.before_subject);
-            after_subject.extend(inner_tokens.after_subject);
+            before_subject.extend(inner_tokens.before_subject_evaluation);
             assertions.push(inner_tokens.assertions);
         });
 
         ExpectationTokens {
-            before_subject,
-            after_subject,
+            before_subject_evaluation: before_subject,
             assertions: AssertionTokens::Many(assertions),
         }
     }

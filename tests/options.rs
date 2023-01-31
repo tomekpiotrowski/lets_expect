@@ -8,6 +8,8 @@ mod tests {
                 equal(Some(1)),
                 be_some
             }
+
+            to be_some_and equal(1)
         }
 
         expect(None as Option<String>) {

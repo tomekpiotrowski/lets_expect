@@ -4,7 +4,10 @@ use proc_macro2::{Ident, TokenStream};
 use quote::{quote_spanned, ToTokens};
 use syn::{parse::Parse, spanned::Spanned, Expr};
 
-use crate::utils::{expr_dependencies::expr_dependencies, to_ident::expr_to_ident};
+use crate::{
+    expectations::expectation_tokens::SingleAssertionTokens,
+    utils::{expr_dependencies::expr_dependencies, to_ident::expr_to_ident},
+};
 
 use super::expectation_tokens::{AssertionTokens, ExpectationTokens};
 
@@ -32,22 +35,19 @@ impl ChangeExpressionExpectation {
     pub(crate) fn tokens(
         &self,
         _ident_prefix: &str,
-        before_variable_name: &str,
-        after_variable_name: &str,
+        change_expression: &TokenStream,
     ) -> ExpectationTokens {
         ExpectationTokens {
-            before_subject: TokenStream::new(),
-            after_subject: TokenStream::new(),
+            before_subject_evaluation: TokenStream::new(),
             assertions: {
-                let expression = &self.expression;
-                let assertion_label = expression.to_token_stream().to_string();
-                let before_variable_ident = Ident::new(before_variable_name, expression.span());
-                let after_variable_ident = Ident::new(after_variable_name, expression.span());
+                let assertion_label = self.expression.to_token_stream().to_string();
+                let before_variable_ident = Ident::new("from_value", self.expression.span());
 
-                AssertionTokens::Single((
+                let expression = self.expression.to_token_stream();
+                AssertionTokens::Single(SingleAssertionTokens::new(
                     assertion_label,
-                    quote_spanned! { expression.span() =>
-                        #expression(&#before_variable_ident, &#after_variable_ident)
+                    quote_spanned! { change_expression.span() =>
+                        #expression(&#before_variable_ident, &#change_expression)
                     },
                 ))
             },

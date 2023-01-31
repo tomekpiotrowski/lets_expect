@@ -6,7 +6,7 @@ use syn::{parse::Parse, spanned::Spanned};
 
 use crate::core::keyword;
 
-use super::expectation_tokens::{AssertionTokens, ExpectationTokens};
+use super::expectation_tokens::{AssertionTokens, ExpectationTokens, SingleAssertionTokens};
 
 pub(crate) struct NotPanicExpectation {
     keyword: keyword::not_panic,
@@ -34,16 +34,15 @@ impl NotPanicExpectation {
     }
 
     pub(crate) fn tokens(&self) -> ExpectationTokens {
-        let assertions = AssertionTokens::Single((
+        let assertions = AssertionTokens::Single(SingleAssertionTokens::new(
             "not_panic".to_string(),
             quote_spanned! { self.keyword.span() =>
-                not_panic(&subject_result)
+                not_panic(&subject)
             },
         ));
 
         ExpectationTokens {
-            before_subject: TokenStream::new(),
-            after_subject: TokenStream::new(),
+            before_subject_evaluation: TokenStream::new(),
             assertions,
         }
     }

@@ -12,3 +12,6 @@ custom_keyword!(change);
 custom_keyword!(not_change);
 custom_keyword!(panic);
 custom_keyword!(not_panic);
+custom_keyword!(be_some_and);
+custom_keyword!(be_ok_and);
+custom_keyword!(be_err_and);

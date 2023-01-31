@@ -38,28 +38,20 @@ impl ChangeManyExpectation {
         &self.identifier_string
     }
 
-    pub(crate) fn tokens(
-        &self,
-        ident_prefix: &str,
-        before_variable_name: &str,
-        after_variable_name: &str,
-    ) -> ExpectationTokens {
+    pub(crate) fn tokens(&self, ident_prefix: &str, expression: &TokenStream) -> ExpectationTokens {
         let ident = format!("{}_{}", ident_prefix, self.identifier_string());
         let mut before_subject = TokenStream::new();
-        let mut after_subject = TokenStream::new();
         let mut assertions = Vec::new();
 
         self.inner.iter().for_each(|inner| {
-            let inner_tokens = inner.tokens(&ident, before_variable_name, after_variable_name);
+            let inner_tokens = inner.tokens(&ident, expression);
 
-            before_subject.extend(inner_tokens.before_subject);
-            after_subject.extend(inner_tokens.after_subject);
+            before_subject.extend(inner_tokens.before_subject_evaluation);
             assertions.push(inner_tokens.assertions);
         });
 
         ExpectationTokens {
-            before_subject,
-            after_subject,
+            before_subject_evaluation: before_subject,
             assertions: AssertionTokens::Many(assertions),
         }
     }
