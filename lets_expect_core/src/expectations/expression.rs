@@ -9,7 +9,7 @@ use crate::utils::{
 };
 
 use super::{
-    expectation_tokens::{AssertionTokens, ExpectationTokens},
+    expectation_tokens::{AssertionTokens, ExpectationTokens, SingleAssertionTokens},
     expectation_type::ExpectationType,
 };
 
@@ -38,25 +38,18 @@ impl ExpectationType for ExpressionExpectation {
         &self.identifier_string
     }
 
-    fn tokens(
-        &self,
-        _ident_prefix: &str,
-        subject_variable: &str,
-        subject_mutable: bool,
-    ) -> ExpectationTokens {
+    fn tokens(&self, _ident_prefix: &str, subject_mutable: bool) -> ExpectationTokens {
         ExpectationTokens {
-            before_subject: TokenStream::new(),
-            after_subject: TokenStream::new(),
+            before_subject_evaluation: TokenStream::new(),
             assertions: {
                 let expression = &self.expression;
                 let assertion_label = expression.to_token_stream().to_string();
                 let mutable_token = mutable_token(subject_mutable, &expression.span());
-                let subject_ident = Ident::new(subject_variable, expression.span());
 
-                AssertionTokens::Single((
+                AssertionTokens::Single(SingleAssertionTokens::new(
                     assertion_label,
                     quote_spanned! { expression.span() =>
-                        #expression(&#mutable_token #subject_ident)
+                        #expression(&#mutable_token subject)
                     },
                 ))
             },

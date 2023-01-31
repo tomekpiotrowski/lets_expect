@@ -21,8 +21,8 @@ mod tests {
 
         expect(Segment { start: Point { x: 1, y: 2 }, end: Point { x: 3, y: 4 } }) {
             to pass_the_same_make_assertion_twice {
-                make(subject_result.start.clone()) equal(Point { x: 1, y: 2 }),
-                make(subject_result.start) equal(Point { x: 1, y: 2 })
+                make(subject.start.clone()) equal(Point { x: 1, y: 2 }),
+                make(subject.start) equal(Point { x: 1, y: 2 })
             }
         }
     }

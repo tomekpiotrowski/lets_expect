@@ -861,6 +861,8 @@
 //! # use lets_expect::lets_expect;
 //! # lets_expect! { #method
 //! expect(Some(1u8) as Option<u8>) {
+//!     to be_some_and equal(1)
+//!
 //!     to be_some {
 //!         equal(Some(1)),
 //!         be_some
@@ -875,18 +877,28 @@
 //! }
 //!
 //! expect(Ok(1u8) as Result<u8, ()>) {
-//!     to be_ok
+//!     to be_ok_and equal(1)
+//!
+//!     to be_ok {
+//!         be_ok,
+//!         equal(Ok(1)),
+//!     }
 //! }
 //!
-//! expect(Err(()) as Result<String, ()>) {
-//!     to be_err
+//! expect(Err(2) as Result<(), i32>) {
+//!     to be_err_and equal(2)
+//!
+//!     to be_err {
+//!         be_err,
+//!         equal(Err(2)),
+//!     }
 //! }
 //! # }
 //! # }
 //! # tests::expect_some_one_as_option::to_be_some().unwrap();
 //! # tests::expect_none_as_option::to_be_none().unwrap();
 //! # tests::expect_ok_one_as_result::to_be_ok().unwrap();
-//! # tests::expect_err__as_result::to_be_err().unwrap();
+//! # tests::expect_err_two_as_result::to_be_err().unwrap();
 //! ```
 //!
 //! ### `panic!`

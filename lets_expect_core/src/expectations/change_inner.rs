@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use proc_macro2::Ident;
+use proc_macro2::{Ident, TokenStream};
 use syn::parse::Parse;
 
 use super::{
@@ -34,19 +34,10 @@ impl ChangeInnerExpectation {
         }
     }
 
-    pub(crate) fn tokens(
-        &self,
-        ident_prefix: &str,
-        before_variable: &str,
-        after_variable: &str,
-    ) -> ExpectationTokens {
+    pub(crate) fn tokens(&self, ident_prefix: &str, expression: &TokenStream) -> ExpectationTokens {
         match self {
-            Self::Expression(expectation) => {
-                expectation.tokens(ident_prefix, before_variable, after_variable)
-            }
-            Self::Many(expectation) => {
-                expectation.tokens(ident_prefix, before_variable, after_variable)
-            }
+            Self::Expression(expectation) => expectation.tokens(ident_prefix, expression),
+            Self::Many(expectation) => expectation.tokens(ident_prefix, expression),
         }
     }
 

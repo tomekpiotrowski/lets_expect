@@ -11,7 +11,7 @@ use syn::{
 
 use super::{
     change_inner::ChangeInnerExpectation,
-    expectation_tokens::{AssertionTokens, ExpectationTokens},
+    expectation_tokens::{AssertionTokens, ExpectationTokens, GroupAssertionTokens},
 };
 use crate::{
     core::keyword,
@@ -63,25 +63,24 @@ impl ChangeExpectation {
             let #before_variable_ident = #expr;
         };
 
-        let after_variable_name = format!("{}_after", ident);
-        let after_variable_ident = Ident::new(&after_variable_name, self.span());
+        let inner_tokens = self
+            .inner
+            .tokens(ident_prefix, &self.expression.to_token_stream());
 
-        let after_subject = quote_spanned! { expr.span() =>
-            let #after_variable_ident = #expr;
+        let context = quote_spanned! { self.span() =>
+            let from_value = #before_variable_ident;
         };
 
-        let inner_tokens =
-            self.inner
-                .tokens(ident_prefix, &before_variable_name, &after_variable_name);
-        let assertions = AssertionTokens::Group(
+        let assertions = AssertionTokens::Group(GroupAssertionTokens::new(
             "change".to_string(),
             self.expression.to_token_stream().to_string(),
-            Box::new(inner_tokens.assertions),
-        );
+            None,
+            Some(context),
+            inner_tokens.assertions,
+        ));
 
         ExpectationTokens {
-            before_subject,
-            after_subject,
+            before_subject_evaluation: before_subject,
             assertions,
         }
     }

@@ -47,9 +47,8 @@ impl To {
         let identifier = self.identifier();
         let subject = runtime.subject.as_ref().expect("No subject set");
 
-        let expectation_tokens = self.expectation.tokens("", "subject_result", subject.0);
-        let before_subject = expectation_tokens.before_subject;
-        let after_subject = expectation_tokens.after_subject;
+        let expectation_tokens = self.expectation.tokens("", subject.0);
+        let before_subject = expectation_tokens.before_subject_evaluation;
 
         let subject_label = subject.1.to_token_stream().to_string();
         let subject_tokens = self.subject_tokens(subject, &identifier, self.expectation.is_panic());
@@ -57,7 +56,7 @@ impl To {
 
         let expectation_dependencies = self.expectation.dependencies();
 
-        let expectation = assertion_tokens(&expectation_tokens.assertions);
+        let expectation = self.assertion_tokens(&expectation_tokens.assertions);
 
         let dependencies = subject_dependencies
             .union(&expectation_dependencies)
@@ -71,8 +70,6 @@ impl To {
 
             #[allow(unused_variables)]
             #subject_tokens
-
-            #after_subject
 
             let expectation_result = #expectation;
 
@@ -94,49 +91,74 @@ impl To {
         if is_panic {
             quote_spanned! { identifier.span() =>
                 #[allow(clippy::no_effect)]
-                let subject_result = std::panic::catch_unwind(|| { #subject; });
+                let subject = std::panic::catch_unwind(|| { #subject; });
             }
         } else {
             quote_spanned! { identifier.span() =>
                 #[allow(clippy::let_unit_value)]
-                let #mutable_token subject_result = #subject;
+                let #mutable_token subject = #subject;
             }
         }
     }
-}
 
-fn assertion_tokens(tokens: &AssertionTokens) -> TokenStream {
-    match tokens {
-        AssertionTokens::Single(assertion) => {
-            let assertion_label = &assertion.0;
-            let assertion = &assertion.1;
+    fn assertion_tokens(&self, tokens: &AssertionTokens) -> TokenStream {
+        match tokens {
+            AssertionTokens::Single(assertion) => {
+                let assertion_label = &assertion.expression;
+                let assertion = &assertion.assertion;
 
-            quote! {
-                {
-                    let result = #assertion;
-                    ExecutedExpectation::Single(ExecutedAssertion::new(#assertion_label.to_string(), result))
+                quote! {
+                    {
+                        let result = #assertion;
+                        ExecutedExpectation::Single(ExecutedAssertion::new(#assertion_label.to_string(), result))
+                    }
                 }
             }
-        }
-        AssertionTokens::Group(label, arg, assertion) => {
-            let assertion_tokens = assertion_tokens(assertion);
+            AssertionTokens::Group(tokens) => {
+                let assertion_tokens = self.assertion_tokens(&tokens.inner);
 
-            quote! {
-                ExecutedExpectation::Group(#label.to_string(), #arg.to_string(), Box::new(#assertion_tokens))
+                let label = &tokens.label;
+                let arg = &tokens.argument;
+                let assertion_tokens = if let Some(context) = tokens.context.as_ref() {
+                    quote_spanned! { self.expectation.span() =>
+                        {
+                            #context
+                            Box::new(#assertion_tokens)
+                        }
+                    }
+                } else {
+                    quote_spanned! { self.expectation.span() =>
+                        Box::new(#assertion_tokens)
+                    }
+                };
+
+                if let Some(guard) = &tokens.guard {
+                    quote_spanned! { self.expectation.span() =>
+                        if #guard {
+                            ExecutedExpectation::Group(#label.to_string(), #arg.to_string(), #assertion_tokens)
+                        } else {
+                            ExecutedExpectation::Single(ExecutedAssertion::new(#label.to_string(), Err(AssertionError::new(vec!["Guard failed".to_string()]))))
+                        }
+                    }
+                } else {
+                    quote_spanned! { self.expectation.span() =>
+                        ExecutedExpectation::Group(#label.to_string(), #arg.to_string(), #assertion_tokens)
+                    }
+                }
             }
-        }
-        AssertionTokens::Many(assertions) => {
-            let assertions = assertions
-                .iter()
-                .map(assertion_tokens)
-                .collect::<Vec<TokenStream>>();
+            AssertionTokens::Many(assertions) => {
+                let assertions = assertions
+                    .iter()
+                    .map(|tokens| self.assertion_tokens(tokens))
+                    .collect::<Vec<TokenStream>>();
 
-            quote! {
-                ExecutedExpectation::Many(
-                    vec![
-                        #(#assertions),*
-                    ]
-                )
+                quote! {
+                    ExecutedExpectation::Many(
+                        vec![
+                            #(#assertions),*
+                        ]
+                    )
+                }
             }
         }
     }
