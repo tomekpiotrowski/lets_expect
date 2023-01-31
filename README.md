@@ -534,6 +534,8 @@ expect(Response::ValidationFailed("email")) {
 
 ```rust
 expect(Some(1u8) as Option<u8>) {
+    to be_some_and equal(1)
+
     to be_some {
         equal(Some(1)),
         be_some
@@ -548,11 +550,21 @@ expect(None as Option<String>) {
 }
 
 expect(Ok(1u8) as Result<u8, ()>) {
-    to be_ok
+    to be_ok_and equal(1)
+
+    to be_ok {
+        be_ok,
+        equal(Ok(1)),
+    }
 }
 
-expect(Err(()) as Result<String, ()>) {
-    to be_err
+expect(Err(2) as Result<(), i32>) {
+    to be_err_and equal(2)
+
+    to be_err {
+        be_err,
+        equal(Err(2)),
+    }
 }
 ```
 
