@@ -1,9 +1,10 @@
-use crate::core::to_ident::local_to_ident;
 use proc_macro2::{Ident, Span, TokenStream};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use syn::token::{Brace, Comma, Paren};
 use syn::{braced, parenthesized, parse::Parse};
+
+use crate::utils::to_ident::local_to_ident;
 
 use super::context::Context;
 use super::create_module::create_module;

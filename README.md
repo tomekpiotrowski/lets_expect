@@ -331,12 +331,16 @@ when(a = 2) {
 `have` is used to test values of attributes or return values of methods of the subject.
 
 ```rust
-let response = Response { status: 200 };
+let response = Response { status: 200, content: ResponseContent::new("admin", "123") };
 
 expect(response) {
     to be_valid {
         have(status) equal(200),
-        have(is_ok()) be_true
+        have(is_ok()) be_true,
+        have(content) {
+            have(username) equal("admin".to_string()),
+            have(token) equal("123".to_string()),
+        }
     }
 }
 ```
@@ -562,12 +566,9 @@ expect(panic!("I panicked!")) {
 expect(2) {
     to not_panic
 }
-
-expect(i_panic.should_panic = true) {
-    let mut i_panic = IPanic::new();
-    to change(i_panic.panic_if_should()) { from_not_panic, to_panic }
-}
 ```
+
+`panic` and `not_panic` assertions can be the only assertions present in a `to` block.
 
 
 #### Iterators

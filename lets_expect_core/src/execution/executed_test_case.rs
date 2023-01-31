@@ -2,27 +2,27 @@ use std::fmt::Display;
 
 use colored::Colorize;
 
-use super::{executed_expectation::ExecutedExpectation, prepend::prepend};
+use crate::utils::indent::indent;
+
+use super::executed_expectation::ExecutedExpectation;
 
 pub struct ExecutedTestCase {
     subject: String,
     whens: Vec<String>,
-    expectations: Vec<ExecutedExpectation>,
+    expectation: ExecutedExpectation,
 }
 
 impl ExecutedTestCase {
-    pub fn new(subject: String, whens: Vec<&str>, expectations: Vec<ExecutedExpectation>) -> Self {
+    pub fn new(subject: String, whens: Vec<&str>, expectation: ExecutedExpectation) -> Self {
         Self {
             subject,
             whens: whens.iter().map(|when| when.to_string()).collect(),
-            expectations,
+            expectation,
         }
     }
 
     pub fn failed(&self) -> bool {
-        self.expectations
-            .iter()
-            .any(|expectation| expectation.failed())
+        self.expectation.failed()
     }
 }
 
@@ -49,21 +49,15 @@ impl Display for ExecutedTestCase {
             whens.push('\n');
         }
 
-        let expectations = self
-            .expectations
-            .iter()
-            .flat_map(ExecutedExpectation::pretty_print)
-            .collect::<Vec<String>>();
-        let expectations = prepend(
-            &expectations,
-            " ".repeat((self.whens.len() + 1) * 4).as_str(),
-        );
+        let expectations = self.expectation.pretty_print();
+        let expectations = indent(&expectations, (self.whens.len() + 1) as u8);
 
         write!(
             f,
-            "{} {}\n{}{}\n",
+            "{} {} {}\n{}{}\n",
             expect,
             subject,
+            "to".cyan(),
             whens,
             expectations.join("\n")
         )

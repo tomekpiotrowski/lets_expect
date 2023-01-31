@@ -1,8 +1,8 @@
-use super::prepend::prepend;
-use crate::assertions::assertion_result::AssertionResult;
+use crate::{assertions::assertion_result::AssertionResult, utils::indent::indent};
 use colored::Colorize;
 use std::fmt::Debug;
 
+#[derive(Clone, PartialEq, Eq)]
 pub struct ExecutedAssertion {
     pub assertion: String,
     pub result: AssertionResult,
@@ -28,7 +28,7 @@ impl ExecutedAssertion {
                     .red()
                     .bold()
                     .to_string()];
-                lines.extend(prepend(&self.result.as_ref().unwrap_err().message, "  "));
+                lines.extend(indent(&self.result.as_ref().unwrap_err().message, 1));
 
                 lines
             }

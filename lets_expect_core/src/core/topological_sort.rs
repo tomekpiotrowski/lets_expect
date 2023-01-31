@@ -3,7 +3,9 @@ use std::collections::{HashMap, HashSet};
 use syn::{Ident, Local};
 use topological_sort::TopologicalSort;
 
-use super::{expr_dependencies::expr_dependencies, ident_from_pat::ident_from_pat};
+use crate::utils::expr_dependencies::expr_dependencies;
+
+use super::ident_from_pat::ident_from_pat;
 
 #[derive(Clone)]
 struct Let {

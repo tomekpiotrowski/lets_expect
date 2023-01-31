@@ -4,8 +4,9 @@ use proc_macro2::{Ident, TokenStream};
 use quote::quote_spanned;
 use syn::Local;
 
+use crate::utils::expr_dependencies::{block_dependencies, expr_dependencies};
+
 use super::{
-    expr_dependencies::{block_dependencies, expr_dependencies},
     ident_from_pat::ident_from_pat,
     mode::Mode,
     runtime::Runtime,

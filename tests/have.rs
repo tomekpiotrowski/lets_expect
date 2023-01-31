@@ -1,7 +1,17 @@
 mod point;
 
+struct StructWithNestedFields {
+    field: i32,
+    nested: NestedStruct,
+}
+
+struct NestedStruct {
+    field: i32,
+}
+
 #[cfg(test)]
 mod tests {
+    use super::*;
     use crate::point::Point;
     use crate::point::Segment;
     use lets_expect::lets_expect;
@@ -33,6 +43,22 @@ mod tests {
             when(valid_sum = "(4, 6)".to_string()) {
                 to have(to_string()) equal(valid_sum)
             }
+        }
+
+        expect(struct_with_nested_fields) {
+            let struct_with_nested_fields = StructWithNestedFields {
+                field: 1,
+                nested: NestedStruct { field: 2 }
+            };
+
+            to have_valid_fields {
+                have(field) equal(1),
+                have(nested) {
+                    have(field) equal(2)
+                }
+            }
+
+            to have(nested.field) equal(2)
         }
     }
 }
