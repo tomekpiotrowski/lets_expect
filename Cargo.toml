@@ -1,7 +1,7 @@
 [workspace]
 
 [workspace.package]
-version = "0.4.0"
+version = "0.4.1"
 authors = ["Tomek Piotrowski"]
 documentation = "https://docs.rs/lets_expect"
 rust-version = "1.64"
@@ -28,9 +28,9 @@ rust-version.workspace = true
 categories.workspace = true
 
 [dependencies]
-lets_expect_core = { version = "=0.4.0", path = "lets_expect_core" }
-lets_expect_assertions = { version = "=0.4.0", path = "lets_expect_assertions" }
-lets_expect_macro = { version = "=0.4.0", path = "lets_expect_macro" }
+lets_expect_core = { version = "=0.4.1", path = "lets_expect_core" }
+lets_expect_assertions = { version = "=0.4.1", path = "lets_expect_assertions" }
+lets_expect_macro = { version = "=0.4.1", path = "lets_expect_macro" }
 tokio = { workspace = true, optional = true }
 
 [dev-dependencies]
