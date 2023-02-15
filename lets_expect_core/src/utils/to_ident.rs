@@ -83,7 +83,11 @@ pub fn expr_to_ident(expr: &syn::Expr) -> String {
         Expr::ForLoop(_) => unimplemented!("ForLoop not supported"),
         Expr::Group(_) => unimplemented!("Group not supported"),
         Expr::If(if_expr) => "if_".to_string() + &expr_to_ident(&if_expr.cond),
-        Expr::Index(_) => unimplemented!("Index not supported"),
+        Expr::Index(index) => format!(
+            "{}_at_{}",
+            expr_to_ident(&index.expr),
+            expr_to_ident(&index.index)
+        ),
         Expr::Let(_) => unimplemented!("Let not supported"),
         Expr::Lit(lit) => expr_lit_to_ident(lit),
         Expr::Loop(_) => unimplemented!("Loop not supported"),

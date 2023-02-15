@@ -2,6 +2,10 @@
 mod tests {
     use lets_expect::lets_expect;
 
+    struct Array<T> {
+        data: [T; 3],
+    }
+
     lets_expect! {
         expect([] as [u8; 0]) {
             to have(len()) equal(0)
@@ -14,6 +18,10 @@ mod tests {
             }
             to have(mut iter()) all(be_greater_than(0))
             to have(mut iter()) any(be_less_or_equal_to(1))
+        }
+
+        expect(Array { data: [1, 2, 3] }) {
+            to have(data[0]) equal(1)
         }
     }
 }
