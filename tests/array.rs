@@ -3,7 +3,7 @@ mod tests {
     use lets_expect::lets_expect;
 
     struct Array<T> {
-        data: [T; 3],
+        data: Vec<T>,
     }
 
     lets_expect! {
@@ -20,8 +20,9 @@ mod tests {
             to have(mut iter()) any(be_less_or_equal_to(1))
         }
 
-        expect(Array { data: [1, 2, 3] }) {
+        expect(Array { data: vec![1, 2, 3] }) {
             to have(data[0]) equal(1)
+            to have(data[1..].to_vec()) equal(vec![2, 3])
         }
     }
 }

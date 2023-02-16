@@ -184,9 +184,17 @@ fn member_to_ident(member: &Member) -> String {
 }
 
 fn range_to_ident(range: &ExprRange) -> String {
-    let from = range.from.as_ref().map(|expr| expr_to_ident(expr)).unwrap();
-    let to = range.to.as_ref().map(|expr| expr_to_ident(expr)).unwrap();
-    format!("range_from_{}_to_{}", from, to)
+    let from = range
+        .from
+        .as_ref()
+        .map(|expr| format!("_from_{}", expr_to_ident(expr)))
+        .unwrap_or_default();
+    let to = range
+        .to
+        .as_ref()
+        .map(|expr| format!("_to_{}", expr_to_ident(expr)))
+        .unwrap_or_default();
+    format!("range{}{}", from, to)
 }
 
 fn expr_assign_to_ident(assign: &ExprAssign) -> String {
