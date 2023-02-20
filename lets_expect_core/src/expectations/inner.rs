@@ -60,10 +60,19 @@ impl ExpectationType for InnerExpectation {
         }
     }
 
-    fn tokens(&self, ident_prefix: &str, subject_mutable: bool) -> ExpectationTokens {
+    fn tokens(
+        &self,
+        ident_prefix: &str,
+        subject_reference: bool,
+        subject_mutable: bool,
+    ) -> ExpectationTokens {
         match self {
-            Self::Expression(expectation) => expectation.tokens(ident_prefix, subject_mutable),
-            Self::Many(expectation) => expectation.tokens(ident_prefix, subject_mutable),
+            Self::Expression(expectation) => {
+                expectation.tokens(ident_prefix, subject_reference, subject_mutable)
+            }
+            Self::Many(expectation) => {
+                expectation.tokens(ident_prefix, subject_reference, subject_mutable)
+            }
             Self::Have(expectation) => expectation.tokens(ident_prefix),
             Self::BeSomeAnd(expectation) => expectation.tokens(ident_prefix),
             Self::BeOkAndAnd(expectation) => expectation.tokens(ident_prefix),

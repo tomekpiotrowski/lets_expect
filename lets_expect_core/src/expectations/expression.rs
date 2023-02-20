@@ -5,7 +5,8 @@ use quote::{quote_spanned, ToTokens};
 use syn::{parse::Parse, spanned::Spanned, Expr};
 
 use crate::utils::{
-    expr_dependencies::expr_dependencies, mutable_token::mutable_token, to_ident::expr_to_ident,
+    expr_dependencies::expr_dependencies, mutable_token::mutable_token,
+    reference_token::reference_token, to_ident::expr_to_ident,
 };
 
 use super::{
@@ -38,18 +39,24 @@ impl ExpectationType for ExpressionExpectation {
         &self.identifier_string
     }
 
-    fn tokens(&self, _ident_prefix: &str, subject_mutable: bool) -> ExpectationTokens {
+    fn tokens(
+        &self,
+        _ident_prefix: &str,
+        subject_reference: bool,
+        subject_mutable: bool,
+    ) -> ExpectationTokens {
         ExpectationTokens {
             before_subject_evaluation: TokenStream::new(),
             assertions: {
                 let expression = &self.expression;
                 let assertion_label = expression.to_token_stream().to_string();
+                let reference_token = reference_token(!subject_reference, &expression.span());
                 let mutable_token = mutable_token(subject_mutable, &expression.span());
 
                 AssertionTokens::Single(SingleAssertionTokens::new(
                     assertion_label,
                     quote_spanned! { expression.span() =>
-                        #expression(&#mutable_token subject)
+                        #expression(#reference_token #mutable_token subject)
                     },
                 ))
             },

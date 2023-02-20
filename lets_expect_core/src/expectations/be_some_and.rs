@@ -43,7 +43,7 @@ impl BeSomeAndExpectation {
     }
 
     pub(crate) fn tokens(&self, ident_prefix: &str) -> ExpectationTokens {
-        let inner_tokens = self.inner.tokens(ident_prefix, false);
+        let inner_tokens = self.inner.tokens(ident_prefix, false, false);
         let before_subject = inner_tokens.before_subject_evaluation;
 
         let guard = quote_spanned! { self.span() => let Some(subject) = subject };
