@@ -24,5 +24,11 @@ mod tests {
             to have(data[0]) equal(1)
             to have(data[1..].to_vec()) equal(vec![2, 3])
         }
+
+        expect(Array { data: vec![vec![1,2,3], vec![0]]}) as array_of_non_copy_type {
+            let unrelated_array = Array { data: vec![vec!["a"]] };
+            to have(&data[1]) equal(vec![0])
+            to make(&unrelated_array.data[0]) equal(vec!["a"])
+        }
     }
 }

@@ -47,7 +47,7 @@ impl To {
         let identifier = self.identifier();
         let subject = runtime.subject.as_ref().expect("No subject set");
 
-        let expectation_tokens = self.expectation.tokens("", subject.0);
+        let expectation_tokens = self.expectation.tokens("", false, subject.0);
         let before_subject = expectation_tokens.before_subject_evaluation;
 
         let subject_label = subject.1.to_token_stream().to_string();

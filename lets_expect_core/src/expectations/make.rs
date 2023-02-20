@@ -5,14 +5,16 @@ use quote::{quote_spanned, ToTokens};
 use syn::{
     parse::{Parse, ParseStream},
     spanned::Spanned,
-    Expr,
 };
 
 use crate::{
     core::keyword,
     utils::{
-        expr_dependencies::expr_dependencies, mutable_token::mutable_token,
-        parse_expression::parse_expr_with_mutable, to_ident::expr_to_ident,
+        expr_dependencies::expr_dependencies,
+        mutable_token::mutable_token,
+        parse_expression::{parse_expectation_expression, ExpectationExpression},
+        reference_token::reference_token,
+        to_ident::expr_to_ident,
     },
 };
 
@@ -25,27 +27,40 @@ use super::{
 use crate::expectations::expectation_tokens::ExpectationTokens;
 
 pub(crate) struct MakeExpectation {
-    mutable: bool,
-    expression: Expr,
+    expectation_expression: ExpectationExpression,
     inner: Box<InnerExpectation>,
     identifier_string: String,
 }
 
 impl MakeExpectation {
-    pub fn new(mutable: bool, expression: Expr, inner: Box<InnerExpectation>) -> Self {
-        let call_ident = expr_to_ident(&expression);
-        let mutable_string = if mutable { "mut_" } else { "" };
+    pub fn new(
+        expectation_expression: ExpectationExpression,
+        inner: Box<InnerExpectation>,
+    ) -> Self {
+        let expr_ident = expr_to_ident(&expectation_expression.expr);
+
+        let ref_string = if expectation_expression.reference {
+            "ref_"
+        } else {
+            ""
+        };
+
+        let mutable_string = if expectation_expression.mutable {
+            "mut_"
+        } else {
+            ""
+        };
 
         let identifier_string = format!(
-            "make_{}{}_{}",
+            "make_{}{}{}_{}",
+            ref_string,
             mutable_string,
-            call_ident,
+            expr_ident,
             inner.identifier_string()
         );
 
         Self {
-            mutable,
-            expression,
+            expectation_expression,
             inner,
             identifier_string,
         }
@@ -55,7 +70,7 @@ impl MakeExpectation {
     }
 
     pub fn span(&self) -> Span {
-        self.expression.span()
+        self.expectation_expression.expr.span()
     }
 
     pub fn identifier_string(&self) -> &str {
@@ -63,17 +78,26 @@ impl MakeExpectation {
     }
 
     pub(crate) fn tokens(&self, ident_prefix: &str) -> ExpectationTokens {
-        let inner_tokens = self.inner.tokens(ident_prefix, self.mutable);
+        let inner_tokens = self.inner.tokens(
+            ident_prefix,
+            self.expectation_expression.reference,
+            self.expectation_expression.mutable,
+        );
         let before_subject = inner_tokens.before_subject_evaluation;
-        let expr = &self.expression;
-        let mutable = mutable_token(self.mutable, &expr.span());
+        let expr = &self.expectation_expression.expr;
+
+        let reference = reference_token(self.expectation_expression.reference, &expr.span());
+        let mutable = mutable_token(self.expectation_expression.mutable, &expr.span());
 
         let context = quote_spanned! { expr.span() =>
-            let #mutable subject = #expr;
+            let #mutable subject = #reference #expr;
         };
         let assertions = AssertionTokens::Group(GroupAssertionTokens::new(
             "make".to_string(),
-            self.expression.to_token_stream().to_string(),
+            self.expectation_expression
+                .expr
+                .to_token_stream()
+                .to_string(),
             None,
             Some(context),
             inner_tokens.assertions,
@@ -85,7 +109,7 @@ impl MakeExpectation {
     }
 
     pub fn dependencies(&self) -> HashSet<Ident> {
-        expr_dependencies(&self.expression)
+        expr_dependencies(&self.expectation_expression.expr)
             .into_iter()
             .chain(self.inner.dependencies().into_iter())
             .collect()
@@ -95,10 +119,10 @@ impl MakeExpectation {
 impl Parse for MakeExpectation {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         input.parse::<keyword::make>()?;
-        let (mutable, expr) = parse_expr_with_mutable(input)?;
+        let expectation_expression = parse_expectation_expression(input)?;
 
         let inner = input.parse::<InnerExpectation>()?;
 
-        Ok(Self::new(mutable, expr, Box::new(inner)))
+        Ok(Self::new(expectation_expression, Box::new(inner)))
     }
 }
